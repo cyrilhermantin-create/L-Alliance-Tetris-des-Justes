@@ -1,9 +1,8 @@
 # 🎮 L'Alliance — Tetris des Justes
 
-[![Licence]()]()
-)](LICENSE)
-[![HTML5](markdownhttps://shields.io
-[![JavaScript](https://shields.io)]()
+[Licence]LICENSE)]
+[HTML5](markdownhttps://shields.io )]
+[JavaScript](https://shields.io)]
 
 **L'Alliance — Tetris des Justes** est un jeu de réflexion et d'adresse sur navigateur web qui revisite le gameplay intemporel du *Tetris* à travers un prisme historique et spirituel, de l'Exode aux Évangiles.
 
