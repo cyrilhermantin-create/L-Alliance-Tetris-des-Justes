@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0c1119">
+<title>L'Alliance — Tetris des Justes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Alegreya:ital@0;1&family=Frank+Ruhl+Libre:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   L'ALLIANCE — TETRIS DES JUSTES
+   4 catégories = 4 couleurs. 6 chapitres = 6 boss + 6 ambiances.
+   Fichier unique, sans librairie. Commentaires en français.
+   ============================================================ */
+:root{
+  /* ambiance du chapitre (réécrite par le JS à chaque histoire) */
+  --bg1:#101a26; --bg2:#0c1119; --accent:#c9a24b;
+  /* couleurs FIXES des 4 catégories (le joueur les apprend) */
+  --cultuel:#e0a82e;  --cultuel2:#a87c17;
+  --juridique:#3e7cb1;--juridique2:#295a85;
+  --moral:#4ea277;    --moral2:#357a56;
+  --social:#d9694a;   --social2:#a8472f;
+  --garbage:#3a3f47;  --garbage2:#22262c;
+  --clair:#efe8da; --estompe:#8a94a1;
+  --cell:22px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;margin:0;}
+body{
+  font-family:'Alegreya',Georgia,serif; color:var(--clair);
+  background:radial-gradient(130% 100% at 50% -10%, var(--bg1), var(--bg2) 65%);
+  transition:background .8s ease;
+  overflow:hidden; user-select:none;-webkit-user-select:none; touch-action:manipulation;
+}
+#app{
+  position:relative; width:100%; max-width:480px; margin:0 auto;
+  height:100dvh; max-height:1000px; display:flex; flex-direction:column;
+  border-left:1px solid rgba(201,162,75,.12); border-right:1px solid rgba(201,162,75,.12);
+}
+
+/* ---------- BANDEAU HAUT : Nom divin + score ---------- */
+#top{ display:flex; align-items:center; gap:.32rem; padding:.5rem .55rem .3rem;}
+.sigil{ font-family:'Frank Ruhl Libre',serif; font-size:1.3rem; color:var(--accent); line-height:1; letter-spacing:.03em; flex:none;}
+.sigil small{ display:block; font-family:'Cinzel',serif; font-size:.42rem; letter-spacing:.22em; color:var(--estompe); margin-top:2px; white-space:nowrap;}
+#top .titre{ flex:1; min-width:0; font-family:'Cinzel',serif; font-weight:700; font-size:.62rem; letter-spacing:.08em; color:var(--clair); opacity:.9; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.pastille{ font-family:'Cinzel',serif; font-size:.52rem; letter-spacing:.04em; color:var(--estompe); text-align:right; flex:none;}
+.pastille b{ display:block; font-size:.82rem; color:var(--clair);}
+.mini-btn{ background:none;border:1px solid rgba(201,162,75,.3);color:var(--accent);border-radius:7px;width:26px;height:26px;font-size:.78rem;cursor:pointer;flex:none;padding:0;}
+
+/* ---------- BARRE DE BOSS ---------- */
+#boss{ display:flex; align-items:center; gap:.55rem; margin:.15rem .8rem .35rem; padding:.4rem .55rem;
+  border:1px solid rgba(255,255,255,.08); border-radius:12px; background:rgba(0,0,0,.22);}
+#boss-av{ width:38px;height:38px;flex:none;border-radius:50%; display:grid;place-items:center;
+  background:radial-gradient(circle at 35% 30%, var(--accent), #1a1a1a); box-shadow:0 0 0 2px rgba(0,0,0,.35);}
+#boss-av svg{ width:24px;height:24px; color:#0c0c0c;}
+#boss-info{ flex:1; min-width:0;}
+#boss-nom{ font-family:'Cinzel',serif; font-size:.78rem; letter-spacing:.05em; display:flex; justify-content:space-between; align-items:baseline;}
+#boss-nom .contre{ font-family:'Alegreya',serif; font-style:italic; font-size:.68rem; color:var(--estompe);}
+#pv-cadre{ height:9px; background:rgba(255,255,255,.09); border-radius:99px; overflow:hidden; margin-top:4px;}
+#pv{ height:100%; width:100%; background:linear-gradient(90deg,#c9453a,#e0a82e); transition:width .3s ease;}
+#boss-defi{ font-size:.62rem; color:var(--estompe); margin-top:3px; font-style:italic;}
+#boss.frappe{ animation:frappe .4s ease;}
+@keyframes frappe{0%,100%{transform:none}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+/* ---------- AIRE DE JEU ---------- */
+#arene{ flex:1; min-height:0; display:flex; gap:.5rem; padding:0 .8rem; align-items:flex-start; justify-content:center;}
+#board-wrap{ position:relative;}
+#board{ display:grid; grid-template-columns:repeat(10,var(--cell)); grid-template-rows:repeat(20,var(--cell));
+  gap:1px; padding:5px; border-radius:8px; background:rgba(0,0,0,.32);
+  box-shadow:0 0 0 1px rgba(255,255,255,.06), 0 0 28px -6px var(--lueur, transparent); transition:box-shadow .25s ease;}
+.c{ width:var(--cell);height:var(--cell); border-radius:2px; background:rgba(255,255,255,.03);}
+.c.on{ box-shadow:inset 0 1px 0 rgba(255,255,255,.35), inset 0 -2px 3px rgba(0,0,0,.35);}
+.c.ghost{ background:rgba(255,255,255,.05); border:1px dashed rgba(255,255,255,.18);}
+.c.cultuel{ background:var(--cultuel);}   .c.juridique{background:var(--juridique);}
+.c.moral{ background:var(--moral);}       .c.social{background:var(--social);}
+.c.x{ background:linear-gradient(180deg,var(--garbage),var(--garbage2));}
+#board.clignote{ animation:clignote .25s ease;}
+@keyframes clignote{50%{filter:brightness(1.6)}}
+
+#lat{ display:flex; flex-direction:column; gap:.5rem; width:74px; padding-top:2px;}
+.boite{ border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:.4rem; background:rgba(0,0,0,.2);}
+.boite .lbl{ font-family:'Cinzel',serif; font-size:.5rem; letter-spacing:.14em; color:var(--estompe); text-align:center; margin-bottom:.3rem;}
+#next{ display:grid; grid-template-columns:repeat(4,12px); grid-template-rows:repeat(4,12px); gap:1px; justify-content:center;}
+#next .c{ width:12px;height:12px;}
+.legende .item{ display:flex; align-items:center; gap:5px; font-size:.56rem; margin:3px 0; color:var(--clair);}
+.legende .pip{ width:11px;height:11px;border-radius:3px;flex:none;}
+
+/* ---------- COMMANDES TACTILES ---------- */
+#pad{ display:flex; gap:.4rem; padding:.5rem .8rem calc(.6rem + env(safe-area-inset-bottom));}
+.touche{ flex:1; height:52px; border:none; border-radius:12px; cursor:pointer; color:var(--clair);
+  background:linear-gradient(180deg,#273241,#1a222e); box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 3px 8px rgba(0,0,0,.35);
+  font-size:1.25rem; display:grid; place-items:center;}
+.touche:active{ transform:translateY(2px); filter:brightness(1.25);}
+.touche.mag{ background:linear-gradient(180deg,var(--accent),#9c7a28); color:#1a1305; font-size:1rem; font-family:'Cinzel',serif; font-weight:700;}
+
+/* ---------- TOAST CODEX ---------- */
+#codex{ position:absolute; left:50%; bottom:78px; transform:translateX(-50%); width:min(90%,380px); z-index:8; pointer-events:none;}
+.toast{ background:linear-gradient(180deg,#f3ecdc,#ddd2ba); color:#2b2318; border-radius:12px; padding:.55rem .75rem;
+  box-shadow:0 10px 26px rgba(0,0,0,.5); border-left:5px solid var(--tcol,#c9a24b); animation:pop .35s ease, sortir .45s ease 2.6s forwards;}
+.toast .r{ font-family:'Cinzel',serif; font-size:.56rem; letter-spacing:.1em; color:#7c6a49; display:flex; justify-content:space-between;}
+.toast .t{ font-size:.9rem; line-height:1.25; margin-top:2px;}
+@keyframes pop{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes sortir{to{opacity:0;transform:translateY(-10px)}}
+
+/* ---------- ÉCRANS ---------- */
+.ecran{ position:absolute; inset:0; z-index:20; padding:1.4rem;
+  background:linear-gradient(180deg, rgba(10,14,20,.94), rgba(10,14,20,.985));
+  display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:.7rem; overflow-y:auto;}
+.ecran.cache{ display:none;}
+.ecran .over{ font-family:'Cinzel',serif; letter-spacing:.22em; font-size:.62rem; color:var(--accent);}
+.ecran h1{ font-family:'Cinzel',serif; font-weight:700; margin:0; font-size:1.7rem; letter-spacing:.06em; color:var(--clair);}
+.ecran h2{ font-family:'Cinzel',serif; font-weight:700; margin:.1rem 0; font-size:1.3rem; color:var(--clair);}
+.ecran p{ color:var(--estompe); max-width:36ch; line-height:1.5; font-size:.92rem; margin:.15rem 0;}
+.duel{ display:flex; align-items:center; gap:.9rem; margin:.3rem 0;}
+.duel .who{ font-family:'Cinzel',serif; font-size:.72rem; letter-spacing:.05em;}
+.duel .who small{ display:block; font-family:'Alegreya',serif; font-style:italic; letter-spacing:0; color:var(--estompe); font-size:.62rem;}
+.duel .vs{ color:var(--accent); font-family:'Cinzel',serif; font-size:.8rem;}
+.med{ width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,var(--accent),#151515);}
+.med svg{width:32px;height:32px;color:#0c0c0c;}
+.verset{ font-style:italic; color:var(--clair); background:rgba(201,162,75,.08); border:1px solid rgba(201,162,75,.22);
+  border-radius:12px; padding:.7rem .9rem; max-width:36ch; font-size:.9rem; line-height:1.45;}
+.bouton{ font-family:'Cinzel',serif; letter-spacing:.06em; font-weight:700; border:none; border-radius:12px;
+  padding:.8rem 1.7rem; font-size:.98rem; cursor:pointer; margin-top:.3rem;
+  background:linear-gradient(180deg,var(--accent),#9c7a28); color:#1a1305; box-shadow:0 6px 16px rgba(201,162,75,.3);}
+.bouton:active{ transform:translateY(2px);}
+.bouton.mineur{ background:none; border:1px solid rgba(201,162,75,.4); color:var(--accent); box-shadow:none; padding:.6rem 1.2rem; font-size:.82rem;}
+.grand-score{ font-family:'Cinzel',serif; font-size:2.4rem; color:var(--accent); line-height:1;}
+.note{ font-size:.66rem; color:#5d6773; max-width:40ch; line-height:1.5; margin-top:.4rem;}
+.regles{ font-size:.82rem; color:var(--clair); line-height:1.6; max-width:34ch;}
+.regles b{ color:var(--accent);}
+.codex-liste{ width:100%; max-width:420px; text-align:left; margin:0 auto;}
+.codex-cat{ font-family:'Cinzel',serif; font-size:.66rem; letter-spacing:.14em; color:var(--accent); text-transform:uppercase; margin:.9rem 0 .35rem; padding-top:.5rem; border-top:1px solid rgba(255,255,255,.08);}
+.codex-liste .codex-cat:first-child{ margin-top:0; border-top:none; padding-top:0;}
+.codex-item{ display:flex; gap:.5rem; align-items:flex-start; padding:.4rem .55rem; border-radius:9px; margin-bottom:.28rem; background:rgba(255,255,255,.028);}
+.codex-item.vu{ background:rgba(255,255,255,.075);}
+.codex-item .pip{ width:8px;height:8px;border-radius:50%; margin-top:.4rem; flex:none;}
+.codex-item .corps{ flex:1; font-size:.8rem; line-height:1.32;}
+.codex-item .ref{ font-family:'Cinzel',serif; font-size:.56rem; letter-spacing:.04em; color:var(--estompe); display:flex; justify-content:space-between; gap:.4rem; margin-bottom:.15rem;}
+.codex-item .check{ font-size:.85rem; flex:none; color:#6fb7a0; width:16px; text-align:center;}
+#codex-entete{ position:sticky; top:0; background:inherit; padding-bottom:.3rem;}
+@media (prefers-reduced-motion:reduce){ *{animation-duration:.001ms!important} #board,#boss,body{transition:none!important} }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div id="top">
+    <div class="sigil" id="sigil">יהוה<small>YHWH</small></div>
+    <div class="titre">L'ALLIANCE</div>
+    <div class="pastille">Score<b id="score">0</b></div>
+    <div class="pastille">Chap.<b id="chap-num">1/6</b></div>
+    <button class="mini-btn" id="btn-nom" aria-label="Basculer YHWH / L'Éternel" title="Basculer YHWH / L'Éternel">✦</button>
+    <button class="mini-btn" id="btn-codex" aria-label="Codex des commandements" title="Codex">📜</button>
+    <button class="mini-btn" id="btn-pause" aria-label="Pause">⏸</button>
+    <button class="mini-btn" id="btn-son" aria-label="Son">♪</button>
+  </div>
+
+  <div id="boss">
+    <div id="boss-av"></div>
+    <div id="boss-info">
+      <div id="boss-nom"><span id="boss-titre">—</span><span class="contre" id="boss-contre"></span></div>
+      <div id="pv-cadre"><div id="pv"></div></div>
+      <div id="boss-defi"></div>
+    </div>
+  </div>
+
+  <div id="arene">
+    <div id="board-wrap"><div id="board"></div></div>
+    <div id="lat">
+      <div class="boite"><div class="lbl">SUIVANT</div><div id="next"></div></div>
+      <div class="boite legende">
+        <div class="lbl">CATÉGORIES</div>
+        <div class="item"><span class="pip" style="background:var(--cultuel)"></span>Cultuel</div>
+        <div class="item"><span class="pip" style="background:var(--juridique)"></span>Juridique</div>
+        <div class="item"><span class="pip" style="background:var(--moral)"></span>Moral</div>
+        <div class="item"><span class="pip" style="background:var(--social)"></span>Social</div>
+      </div>
+    </div>
+    <div id="codex"></div>
+  </div>
+
+  <div id="pad">
+    <button class="touche" id="t-gauche" aria-label="Gauche">◀</button>
+    <button class="touche" id="t-tourne" aria-label="Tourner">⟳</button>
+    <button class="touche" id="t-droite" aria-label="Droite">▶</button>
+    <button class="touche" id="t-bas" aria-label="Descendre">▼</button>
+    <button class="touche mag" id="t-chute" aria-label="Chute rapide">CHUTE</button>
+  </div>
+
+  <!-- ÉCRAN MENU -->
+  <div class="ecran" id="e-menu">
+    <div class="sigil" style="font-size:2.4rem">יהוה</div>
+    <h1>L'Alliance</h1>
+    <div class="over">TETRIS DES JUSTES · DE L'EXODE AUX ÉVANGILES</div>
+    <p>Empile les pièces, complète des rangées. Chaque rangée accomplie <b style="color:var(--accent)">accomplit un commandement</b> et fait reculer l'adversaire de l'histoire.</p>
+    <div class="regles">
+      <b>Téléphone :</b> les 5 touches du bas.<br>
+      <b>Ordinateur :</b> ← → déplacer · ↑ tourner · ↓ descendre · Espace chute · P pause.
+    </div>
+    <div style="display:flex; gap:.5rem; flex-wrap:wrap; justify-content:center;">
+      <button class="bouton mineur" id="btn-nom-menu">Nom divin : YHWH — changer</button>
+      <button class="bouton mineur" id="btn-codex-menu">📜 Codex des commandements</button>
+    </div>
+    <button class="bouton" id="btn-jouer">Commencer l'Exode</button>
+    <p class="note">6 chapitres, 6 adversaires : Pharaon, Goliath, Haman, Antiochus, Hérode, Pilate. Corpus : Torah (Zadok Kahn) + commandements de Yeshoua. Selon ta confession, affiche le Nom divin en <b style="color:var(--accent)">YHWH</b> ou en <b style="color:var(--accent)">L'Éternel</b> — voir la note du concepteur en bas de la conversation.</p>
+  </div>
+
+  <!-- ÉCRAN INTRO CHAPITRE -->
+  <div class="ecran cache" id="e-intro">
+    <div class="over" id="i-epoque"></div>
+    <h2 id="i-titre"></h2>
+    <div class="duel">
+      <div class="who" id="i-heros-nom"></div>
+      <span class="vs">✦ contre ✦</span>
+      <div class="who" style="text-align:right"><div class="med" id="i-med"></div></div>
+    </div>
+    <div class="who" id="i-adv-nom" style="color:var(--accent)"></div>
+    <p id="i-intro"></p>
+    <div class="verset" id="i-verset"></div>
+    <div id="i-defi" class="regles"></div>
+    <button class="bouton" id="btn-combat">Au combat</button>
+  </div>
+
+  <!-- ÉCRAN VICTOIRE CHAPITRE -->
+  <div class="ecran cache" id="e-victoire">
+    <div class="over">CHAPITRE ACCOMPLI</div>
+    <div class="med" id="v-med"></div>
+    <h2 id="v-titre"></h2>
+    <p id="v-mot"></p>
+    <div class="verset" id="v-verset"></div>
+    <button class="bouton" id="btn-suite">Chapitre suivant</button>
+  </div>
+
+  <!-- ÉCRAN DÉFAITE -->
+  <div class="ecran cache" id="e-defaite">
+    <div class="over">LA PILE A DÉBORDÉ</div>
+    <h2 id="d-titre">Reprends courage</h2>
+    <p id="d-mot"></p>
+    <button class="bouton" id="btn-reprendre">Reprendre le chapitre</button>
+    <button class="bouton mineur" id="btn-menu-d">Retour au menu</button>
+  </div>
+
+  <!-- ÉCRAN VICTOIRE FINALE -->
+  <div class="ecran cache" id="e-fin">
+    <div class="sigil" style="font-size:2rem">יהוה</div>
+    <div class="over">L'ALLIANCE ACCOMPLIE</div>
+    <h1>Bravo !</h1>
+    <p>De la sortie d'Égypte au commandement nouveau, tu as traversé les six épreuves.</p>
+    <div class="grand-score" id="f-score">0</div>
+    <p class="note">Tu as croisé des dizaines de commandements des cinq livres et des Évangiles. Le tableur reste la référence exhaustive ; ce jeu en est la porte d'entrée.</p>
+    <button class="bouton" id="btn-rejouer">Tout recommencer</button>
+  </div>
+
+  <!-- ÉCRAN CODEX -->
+  <div class="ecran cache" id="e-codex" style="justify-content:flex-start; padding-top:1.1rem;"></div>
+
+</div>
+
+<script>
+"use strict";
+/* ==========================================================================
+   1) LES QUATRE CATÉGORIES
+   ========================================================================== */
+const CATS = ["cultuel","juridique","moral","social"];
+
+/* ==========================================================================
+   2) LE CORPUS  (r=référence, n=nature pos/neg, c=catégorie, s=source, t=texte)
+   Nom divin restauré en YHWH, à la demande du concepteur.
+   Pour AJOUTER un commandement : copie une ligne et remplis-la. C'est tout.
+   ========================================================================== */
+const CMDS = [
+  // ---------------- TORAH ----------------
+  {r:"Genèse 1:28",     n:"pos",c:"juridique",s:"AT",t:"Soyez féconds, multipliez-vous et remplissez la terre."},
+  {r:"Genèse 17:10",    n:"pos",c:"cultuel",  s:"AT",t:"Que tout mâle soit circoncis : signe de l'alliance d'Abraham."},
+  {r:"Genèse 32:33",    n:"neg",c:"cultuel",  s:"AT",t:"Ne mange pas le nerf sciatique, en mémoire de la lutte de Jacob."},
+  {r:"Exode 12:15",     n:"pos",c:"cultuel",  s:"AT",t:"Fais disparaître tout levain de tes demeures pour Pessah."},
+  {r:"Exode 13:8",      n:"pos",c:"cultuel",  s:"AT",t:"Raconte à ton fils la sortie d'Égypte."},
+  {r:"Exode 20:3",      n:"neg",c:"cultuel",  s:"AT",t:"Tu n'auras pas d'autres dieux devant la face de YHWH."},
+  {r:"Exode 20:4",      n:"neg",c:"cultuel",  s:"AT",t:"Ne te fais pas d'idole ni d'image taillée."},
+  {r:"Exode 20:7",      n:"neg",c:"cultuel",  s:"AT",t:"Ne prononce pas le nom de YHWH en vain."},
+  {r:"Exode 20:8",      n:"pos",c:"cultuel",  s:"AT",t:"Souviens-toi du jour du Shabbat pour le sanctifier."},
+  {r:"Exode 20:12",     n:"pos",c:"juridique",s:"AT",t:"Honore ton père et ta mère."},
+  {r:"Exode 20:13",     n:"neg",c:"juridique",s:"AT",t:"Tu ne commettras pas de meurtre."},
+  {r:"Exode 20:15",     n:"neg",c:"juridique",s:"AT",t:"Tu ne déroberas pas."},
+  {r:"Exode 20:16",     n:"neg",c:"juridique",s:"AT",t:"Tu ne porteras pas de faux témoignage."},
+  {r:"Exode 20:17",     n:"neg",c:"moral",    s:"AT",t:"Tu ne convoiteras pas ce qui est à ton prochain."},
+  {r:"Exode 22:20",     n:"neg",c:"social",   s:"AT",t:"N'opprime pas l'étranger, la veuve ni l'orphelin."},
+  {r:"Exode 22:24",     n:"neg",c:"social",   s:"AT",t:"Ne prête pas à intérêt au pauvre de mon peuple, dit YHWH."},
+  {r:"Exode 23:1",      n:"neg",c:"moral",    s:"AT",t:"Ne colporte pas de faux bruit."},
+  {r:"Exode 23:10",     n:"pos",c:"social",   s:"AT",t:"Laisse la terre reposer la 7ᵉ année, pour les pauvres."},
+  {r:"Lévitique 19:9",  n:"pos",c:"social",   s:"AT",t:"Laisse aux pauvres les coins du champ et le glanage."},
+  {r:"Lévitique 19:13", n:"neg",c:"social",   s:"AT",t:"Ne retiens pas jusqu'au matin le salaire du journalier."},
+  {r:"Lévitique 19:14", n:"neg",c:"moral",    s:"AT",t:"Ne mets pas d'obstacle devant l'aveugle."},
+  {r:"Lévitique 19:15", n:"pos",c:"juridique",s:"AT",t:"Juge ton prochain avec justice, sans favoritisme."},
+  {r:"Lévitique 19:17", n:"neg",c:"moral",    s:"AT",t:"Ne hais pas ton frère dans ton cœur ; reprends-le."},
+  {r:"Lévitique 19:18", n:"pos",c:"moral",    s:"AT",t:"Aime ton prochain comme toi-même, dit YHWH."},
+  {r:"Lévitique 19:32", n:"pos",c:"social",   s:"AT",t:"Lève-toi devant les cheveux blancs, honore le vieillard."},
+  {r:"Lévitique 19:36", n:"pos",c:"juridique",s:"AT",t:"Aie des balances justes et des poids justes."},
+  {r:"Lévitique 22:32", n:"pos",c:"cultuel",  s:"AT",t:"Sanctifie le nom de YHWH, ne le profane pas."},
+  {r:"Lévitique 23:3",  n:"pos",c:"cultuel",  s:"AT",t:"Le 7ᵉ jour est repos solennel, sainte convocation."},
+  {r:"Lévitique 25:10", n:"pos",c:"juridique",s:"AT",t:"Proclame la liberté la 50ᵉ année : le Jubilé."},
+  {r:"Nombres 6:24",    n:"pos",c:"cultuel",  s:"AT",t:"Bénis ainsi : Que YHWH te bénisse et te garde."},
+  {r:"Nombres 15:38",   n:"pos",c:"cultuel",  s:"AT",t:"Mets des franges (tsitsit) aux coins de tes vêtements."},
+  {r:"Nombres 35:11",   n:"pos",c:"juridique",s:"AT",t:"Établis des villes de refuge pour l'homicide involontaire."},
+  {r:"Nombres 27:8",    n:"pos",c:"juridique",s:"AT",t:"À défaut de fils, la fille hérite : règle des successions."},
+  {r:"Nombres 30:3",    n:"pos",c:"juridique",s:"AT",t:"Accomplis fidèlement tout vœu prononcé devant YHWH."},
+  {r:"Deutéronome 4:2", n:"neg",c:"cultuel",  s:"AT",t:"N'ajoute rien, ne retranche rien à la parole de YHWH."},
+  {r:"Deutéronome 6:4", n:"pos",c:"cultuel",  s:"AT",t:"Écoute Israël : YHWH est un ; aime-Le de tout ton cœur."},
+  {r:"Deutéronome 6:7", n:"pos",c:"moral",    s:"AT",t:"Enseigne ces paroles à tes enfants, en tout temps."},
+  {r:"Deutéronome 6:9", n:"pos",c:"cultuel",  s:"AT",t:"Écris-les sur les montants de ta porte (mezouza)."},
+  {r:"Deutéronome 8:10",n:"pos",c:"cultuel",  s:"AT",t:"Tu mangeras, te rassasieras, et tu béniras YHWH."},
+  {r:"Deutéronome 15:1",n:"pos",c:"social",   s:"AT",t:"Remets les dettes de ton frère à la 7ᵉ année."},
+  {r:"Deutéronome 15:7",n:"pos",c:"social",   s:"AT",t:"Ouvre ta main à ton frère indigent."},
+  {r:"Deutéronome 16:18",n:"pos",c:"juridique",s:"AT",t:"Établis des juges et des magistrats à tes portes."},
+  {r:"Deutéronome 16:19",n:"neg",c:"juridique",s:"AT",t:"Ne fais pas fléchir le droit, n'accepte pas de présent."},
+  {r:"Deutéronome 19:14",n:"neg",c:"juridique",s:"AT",t:"Ne déplace pas la borne de ton prochain."},
+  {r:"Deutéronome 22:1",n:"pos",c:"social",   s:"AT",t:"Rends à ton frère l'objet qu'il a perdu."},
+  {r:"Deutéronome 22:6",n:"pos",c:"moral",    s:"AT",t:"Renvoie la mère avant de prendre les oisillons."},
+  {r:"Deutéronome 22:8",n:"pos",c:"juridique",s:"AT",t:"Fais un garde-corps au toit de ta maison neuve."},
+  {r:"Deutéronome 24:15",n:"pos",c:"social",  s:"AT",t:"Paie l'ouvrier pauvre le jour même, avant le soir."},
+  {r:"Deutéronome 25:4",n:"neg",c:"moral",    s:"AT",t:"Ne muselle pas le bœuf qui foule le grain."},
+  {r:"Deutéronome 25:13",n:"neg",c:"juridique",s:"AT",t:"N'aie pas dans ton sac deux poids différents."},
+  {r:"Deutéronome 25:17",n:"pos",c:"juridique",s:"AT",t:"Souviens-toi d'Amalek ; efface sa mémoire."},
+  // ---------------- ÉVANGILES (extension du concepteur) ----------------
+  {r:"Matthieu 3:2",    n:"pos",c:"moral",    s:"NT",t:"Convertissez-vous, car le Royaume des cieux est proche."},
+  {r:"Matthieu 4:10",   n:"pos",c:"cultuel",  s:"NT",t:"Tu adoreras YHWH ton Dieu, et Lui seul tu serviras."},
+  {r:"Matthieu 5:16",   n:"pos",c:"moral",    s:"NT",t:"Que votre lumière brille devant les hommes par vos œuvres."},
+  {r:"Matthieu 5:17",   n:"pos",c:"cultuel",  s:"NT",t:"N'abolissez pas la Torah : accomplissez-la jusqu'au moindre trait."},
+  {r:"Matthieu 5:22",   n:"neg",c:"juridique",s:"NT",t:"Ne t'emporte pas contre ton frère ; réconcilie-toi d'abord."},
+  {r:"Matthieu 5:28",   n:"neg",c:"moral",    s:"NT",t:"Ne regarde pas pour convoiter : c'est déjà l'adultère du cœur."},
+  {r:"Matthieu 5:37",   n:"neg",c:"juridique",s:"NT",t:"Ne jure pas : que ta parole soit oui, oui ; non, non."},
+  {r:"Matthieu 5:39",   n:"neg",c:"moral",    s:"NT",t:"Ne rends pas le mal pour le mal ; tends l'autre joue."},
+  {r:"Matthieu 5:44",   n:"pos",c:"moral",    s:"NT",t:"Aime tes ennemis, prie pour ceux qui te persécutent."},
+  {r:"Matthieu 6:3",    n:"neg",c:"social",   s:"NT",t:"Ne fais pas l'aumône pour être vu des hommes."},
+  {r:"Matthieu 6:6",    n:"pos",c:"cultuel",  s:"NT",t:"Prie ton Père dans le secret de ta chambre."},
+  {r:"Matthieu 7:1",    n:"neg",c:"juridique",s:"NT",t:"Ne juge pas hypocritement ; ôte d'abord ta propre poutre."},
+  {r:"Matthieu 7:12",   n:"pos",c:"juridique",s:"NT",t:"Fais pour autrui ce que tu veux qu'on fasse pour toi (Règle d'Or)."},
+  {r:"Matthieu 10:8",   n:"pos",c:"social",   s:"NT",t:"Vous avez reçu gratuitement : donnez gratuitement."},
+  {r:"Matthieu 15:4",   n:"pos",c:"juridique",s:"NT",t:"Honore père et mère ; n'annule pas ce devoir par un vœu."},
+  {r:"Matthieu 22:37",  n:"pos",c:"cultuel",  s:"NT",t:"Aime YHWH de tout ton cœur ; et ton prochain comme toi-même."},
+  {r:"Marc 12:31",      n:"pos",c:"moral",    s:"NT",t:"Il n'y a pas de commandement plus grand que ceux-là."},
+  {r:"Jean 13:34",      n:"pos",c:"moral",    s:"NT",t:"Aimez-vous les uns les autres comme je vous ai aimés."},
+];
+
+/* ==========================================================================
+   3) LES SIX CHAPITRES (boss, ambiance, difficulté, récit)
+   ========================================================================== */
+const CHAPS = [
+  { adv:"Pharaon", heros:"Moshé", epoque:"L'ÉGYPTE · LIVRE DE L'EXODE",
+    hp:10, grav:900, atkEvery:22000, atkRows:1, glyph:"pharaon",
+    bg1:"#3a2c14", bg2:"#140f07", accent:"#e0a82e",
+    verset:"« Laisse partir mon peuple, afin qu'il me serve. » — Exode 8:16",
+    intro:"YHWH envoie Moshé réclamer la libération du peuple. Pharaon endurcit son cœur à chaque sommation — mais dix plaies vont s'abattre, une à une, jusqu'à ce qu'il cède.",
+    defi:"Objectif : faire tomber, une à une, les 10 plaies d'Égypte.",
+    src:["AT"], focus:["cultuel","juridique"],
+    atkMsg:"Pharaon endurcit son cœur et refuse de céder !",
+    plaies:["Les eaux changées en sang","Les grenouilles","Les poux","Les bêtes sauvages","La peste du bétail","Les ulcères","La grêle de feu","Les sauterelles","Les ténèbres","La mort des premiers-nés"],
+    mot:"« Va, sers YHWH comme tu l'as dit ! » Pharaon cède enfin, brisé par la dixième plaie (Exode 12:31) : le peuple sort d'Égypte, la mer s'ouvre devant lui." },
+
+  { adv:"Goliath", heros:"David", epoque:"LA VALLÉE D'ÉLA · 1 SAMUEL 17",
+    hp:26, grav:800, atkEvery:24000, atkRows:1, glyph:"goliath",
+    bg1:"#2b3520", bg2:"#0d1108", accent:"#b9c06a",
+    verset:"« Le combat est à YHWH ! » — 1 Samuel 17:47",
+    intro:"Un berger face au géant. Non par l'épée ni la lance, mais par la confiance. Empile la justice, et la pierre atteindra son but.",
+    defi:"Objectif : renverser le géant en 26 coups.",
+    src:["AT"], focus:["juridique","moral"],
+    mot:"Le géant tombe ; Israël respire." },
+
+  { adv:"Haman", heros:"Esther & Mardochée", epoque:"SUSE LA PERSE · LIVRE D'ESTHER (POURIM)",
+    hp:30, grav:700, atkEvery:20000, atkRows:2, glyph:"haman",
+    bg1:"#3a163a", bg2:"#120612", accent:"#d58bd5",
+    verset:"« Efface la mémoire d'Amalek de dessous les cieux. » — Deutéronome 25:19",
+    intro:"Haman l'Agaguite, héritier d'Amalek, trame la perte des Juifs. Son décret peut être renversé : bâtis, et le sort se retourne contre lui.",
+    defi:"Attention : le décret d'Haman lâche 2 rangées d'un coup.",
+    src:["AT"], focus:["juridique","social"],
+    mot:"Le décret se retourne ; la joie remplace le deuil." },
+
+  { adv:"Antiochus", heros:"Les Maccabées", epoque:"JÉRUSALEM PROFANÉE · MACCABÉES (HANOUKA)",
+    hp:34, grav:620, atkEvery:16000, atkRows:1, glyph:"antiochus",
+    bg1:"#16303a", bg2:"#061114", accent:"#5fc9d5",
+    verset:"« Tu n'auras pas d'autres dieux devant ma face. » — Exode 20:3",
+    intro:"Antiochus impose ses idoles et souille le Temple. Refuse de plier : chaque ligne purifiée rallume la lumière.",
+    defi:"Antiochus frappe souvent : tiens bon et purifie le sanctuaire.",
+    src:["AT"], focus:["cultuel"],
+    mot:"Le Temple est purifié ; la flamme repart." },
+
+  { adv:"Hérode", heros:"Yohanan le Baptiseur", epoque:"LE JOURDAIN · LES ÉVANGILES",
+    hp:38, grav:540, atkEvery:15000, atkRows:1, glyph:"herode",
+    bg1:"#312b22", bg2:"#100d09", accent:"#c9a24b",
+    verset:"« Convertissez-vous, car le Royaume des cieux est proche. » — Matthieu 3:2",
+    intro:"Yohanan appelle à la justice et reprend le roi en face. Le pouvoir gronde ; la parole droite, elle, ne se tait pas.",
+    defi:"La parole contre le trône : fais tenir la droiture.",
+    src:["AT","NT"], focus:["moral"],
+    mot:"La parole a été dite, sans fléchir." },
+
+  { adv:"Pilate", heros:"Yeshoua", epoque:"JÉRUSALEM · LA PASSION",
+    hp:44, grav:460, atkEvery:13000, atkRows:1, glyph:"pilate",
+    bg1:"#1c2140", bg2:"#080a14", accent:"#c9b56a",
+    verset:"« Je vous donne un commandement nouveau : aimez-vous les uns les autres. » — Jean 13:34",
+    intro:"Face au pouvoir de Rome, Yeshoua ne rend pas coup pour coup : il témoigne de la vérité. Ici on ne renverse pas un homme — on fait triompher le commandement nouveau sur l'endurcissement du monde.",
+    defi:"L'épreuve finale : que l'amour l'emporte sur la dureté.",
+    src:["NT"], focus:["moral","cultuel"],
+    mot:"L'amour a témoigné plus fort que la peur." },
+];
+
+/* petits emblèmes SVG (originaux, symboliques) pour chaque adversaire */
+const GLYPHS = {
+  pharaon:  '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 L22 21 H2 Z"/><circle cx="12" cy="8" r="2.3" fill="#0c1119"/></svg>',
+  goliath:  '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 13a8 8 0 0 1 16 0v3h-3v-3a5 5 0 0 0-10 0v3H4z"/><rect x="11" y="13" width="2" height="8"/></svg>',
+  haman:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round"><path d="M12 4 L21 20 H3 Z"/></svg>',
+  antiochus:'<svg viewBox="0 0 24 24" fill="currentColor"><rect x="9" y="6" width="6" height="12"/><rect x="6" y="4" width="12" height="3" rx="1"/><rect x="6" y="18" width="12" height="3" rx="1"/></svg>',
+  herode:   '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 19 V8 l4.5 4 4.5-7 4.5 7 4.5-4 V19 Z"/></svg>',
+  pilate:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4 v15"/><path d="M12 7 L5 11 M12 7 L19 11 M12 11 L7 14 M12 11 L17 14"/></svg>',
+};
+
+/* ==========================================================================
+   4) LES PIÈCES (tétrominos) + rotation
+   ========================================================================== */
+const FORMES = {
+  I:[[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
+  O:[[1,1],[1,1]],
+  T:[[0,1,0],[1,1,1],[0,0,0]],
+  S:[[0,1,1],[1,1,0],[0,0,0]],
+  Z:[[1,1,0],[0,1,1],[0,0,0]],
+  J:[[1,0,0],[1,1,1],[0,0,0]],
+  L:[[0,0,1],[1,1,1],[0,0,0]],
+};
+const CLES_FORMES = Object.keys(FORMES);
+function tournerCW(m){ const n=m.length, r=[]; for(let i=0;i<n;i++){ r.push([]); for(let j=0;j<n;j++) r[i].push(m[n-1-j][i]); } return r; }
+
+/* ==========================================================================
+   5) ÉTAT
+   ========================================================================== */
+const COLS=10, ROWS=20;
+const S = {
+  mode:"menu", chap:0, score:0, muet:false,
+  board:[], piece:null, sac:[], suivante:null,
+  bossHP:0, bossMax:0,
+  gravAcc:0, atkAcc:0, dernier:0, pendingGarbage:0, alerte:false,
+  poolChap:[], vus:new Set(), modeAvantCodex:"menu",
+};
+
+/* ==========================================================================
+   6) DOM
+   ========================================================================== */
+const $=(id)=>document.getElementById(id);
+const board=$("board"), nextGrid=$("next");
+let cellules=[]; // 200 divs
+(function construireGrille(){
+  for(let i=0;i<ROWS*COLS;i++){ const d=document.createElement("div"); d.className="c"; board.appendChild(d); cellules.push(d); }
+  for(let i=0;i<16;i++){ const d=document.createElement("div"); d.className="c"; nextGrid.appendChild(d); }
+})();
+
+/* ==========================================================================
+   7) SON (bips Web Audio)
+   ========================================================================== */
+let actx=null;
+function bip(f,d,type){ if(S.muet) return; try{ if(!actx) actx=new (window.AudioContext||window.webkitAudioContext)();
+  const o=actx.createOscillator(), g=actx.createGain(); o.type=type||"sine"; o.frequency.value=f;
+  o.connect(g); g.connect(actx.destination); g.gain.setValueAtTime(.0001,actx.currentTime);
+  g.gain.exponentialRampToValueAtTime(.16,actx.currentTime+.01); g.gain.exponentialRampToValueAtTime(.0001,actx.currentTime+d);
+  o.start(); o.stop(actx.currentTime+d);}catch(e){} }
+const sPose =()=>bip(220,.06,"triangle");
+const sLigne=()=>{bip(660,.09);setTimeout(()=>bip(880,.11),80);};
+const sTetris=()=>{bip(523,.1);setTimeout(()=>bip(659,.1),90);setTimeout(()=>bip(880,.16),180);};
+const sFrappe=()=>bip(120,.25,"square");
+const sVictoire=()=>{[523,659,784,1046].forEach((f,i)=>setTimeout(()=>bip(f,.16),i*130));};
+
+/* ---- Musique de fond : fanfare orchestrale originale (esprit « space opera »),
+   composée pour ce jeu — aucune mélodie existante n'est reproduite. Simple
+   séquenceur pas-à-pas en Web Audio : cuivres (dent de scie) + basse (triangle). */
+let musicGain=null, musicTimer=null, musicStep=0;
+const MUSIQUE_BPM = 112;
+const MUSIQUE_MELODIE = [392,null,523,null,659,784,659,587, 523,null,440,null,587,523,494,null];
+const MUSIQUE_BASSE   = [196,null,196,null,196,null,196,null, 220,null,220,null,196,null,175,null];
+function jouerNote(freq,dur,type,gain,vol){
+  if(!actx) return;
+  const o=actx.createOscillator(), g=actx.createGain();
+  o.type=type; o.frequency.value=freq;
+  o.connect(g); g.connect(gain);
+  g.gain.setValueAtTime(.0001,actx.currentTime);
+  g.gain.exponentialRampToValueAtTime(vol,actx.currentTime+.015);
+  g.gain.exponentialRampToValueAtTime(.0001,actx.currentTime+dur);
+  o.start(); o.stop(actx.currentTime+dur+.02);
+}
+function demarrerMusique(){
+  try{ if(!actx) actx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return; }
+  if(!musicGain){ musicGain=actx.createGain(); musicGain.gain.value = S.muet?0:.12; musicGain.connect(actx.destination); }
+  if(musicTimer) return;
+  const pas = 60000/MUSIQUE_BPM/2;
+  musicStep=0;
+  musicTimer=setInterval(()=>{
+    const i=musicStep % MUSIQUE_MELODIE.length;
+    const m=MUSIQUE_MELODIE[i], b=MUSIQUE_BASSE[i];
+    if(m) jouerNote(m, pas/1000*0.95, "sawtooth", musicGain, .085);
+    if(b) jouerNote(b, pas/1000*1.15, "triangle", musicGain, .11);
+    musicStep++;
+  }, pas);
+}
+function arreterMusique(){ if(musicTimer){ clearInterval(musicTimer); musicTimer=null; } }
+
+/* ==========================================================================
+   8) OUTILS PLATEAU
+   ========================================================================== */
+function videRangee(){ return new Array(COLS).fill(null); }
+function nouveauBoard(){ S.board=[]; for(let r=0;r<ROWS;r++) S.board.push(videRangee()); }
+function sacMelange(){ const s=CLES_FORMES.slice(); for(let i=s.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[s[i],s[j]]=[s[j],s[i]];} return s; }
+function tirerForme(){ if(S.sac.length===0) S.sac=sacMelange(); return S.sac.pop(); }
+function cmdAlea(){ const p=S.poolChap.length?S.poolChap:CMDS; return p[(Math.random()*p.length)|0]; }
+function fabriquerPiece(cle){
+  const cat=CATS[(Math.random()*CATS.length)|0];
+  const m=FORMES[cle].map(r=>r.slice());
+  return { m, cat, cmd:cmdAlea(), x:((COLS-m[0].length)/2|0), y:(cle==="I"?-1:0) };
+}
+function collision(m,x,y){
+  for(let i=0;i<m.length;i++) for(let j=0;j<m[i].length;j++){
+    if(!m[i][j]) continue;
+    const R=y+i, C=x+j;
+    if(C<0||C>=COLS||R>=ROWS) return true;
+    if(R>=0 && S.board[R][C]) return true;
+  }
+  return false;
+}
+
+/* ==========================================================================
+   9) RENDU
+   ========================================================================== */
+function poserClasse(el,val,ghost){
+  el.className="c"+(ghost?" ghost":"");
+  if(val){ el.classList.add("on"); el.classList.add(val); }
+}
+function fantomeY(){ let y=S.piece.y; while(!collision(S.piece.m,S.piece.x,y+1)) y++; return y; }
+function rendre(){
+  // copie du plateau
+  const g=S.board.map(r=>r.slice());
+  if(S.piece && S.mode==="play"){
+    const gy=fantomeY();
+    // fantôme
+    for(let i=0;i<S.piece.m.length;i++) for(let j=0;j<S.piece.m[i].length;j++){
+      if(S.piece.m[i][j]){ const R=gy+i,C=S.piece.x+j; if(R>=0&&R<ROWS&&C>=0&&C<COLS&&!g[R][C]) g[R][C]="__ghost__"; }
+    }
+    // pièce active
+    for(let i=0;i<S.piece.m.length;i++) for(let j=0;j<S.piece.m[i].length;j++){
+      if(S.piece.m[i][j]){ const R=S.piece.y+i,C=S.piece.x+j; if(R>=0&&R<ROWS&&C>=0&&C<COLS) g[R][C]=S.piece.cat; }
+    }
+  }
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+    const v=g[r][c], el=cellules[r*COLS+c];
+    if(v==="__ghost__") poserClasse(el,null,true); else poserClasse(el,v,false);
+  }
+  // lueur = couleur de la catégorie de la pièce (l'environnement réagit)
+  if(S.piece) board.style.setProperty("--lueur","var(--"+S.piece.cat+")");
+}
+function rendreSuivante(){
+  const cells=nextGrid.children; for(const c of cells) c.className="c";
+  if(!S.suivante) return;
+  const m=FORMES[S.suivante], cat="cultuel"; // aperçu neutre visuel
+  for(let i=0;i<m.length;i++) for(let j=0;j<m[i].length;j++){
+    if(m[i][j] && i<4 && j<4){ const el=cells[i*4+j]; el.className="c on "+ S.pieceSuivanteCat; }
+  }
+}
+
+/* ==========================================================================
+   10) BOUCLE / MÉCANIQUE
+   ========================================================================== */
+function nouvellePiece(){
+  S.piece = S.pieceSuivante || fabriquerPiece(tirerForme());
+  const cleSuiv = tirerForme();
+  S.pieceSuivante = fabriquerPiece(cleSuiv);
+  S.suivante = cleSuiv; S.pieceSuivanteCat = S.pieceSuivante.cat;
+  rendreSuivante();
+  if(collision(S.piece.m,S.piece.x,S.piece.y)){ defaite(); return; }
+  rendre();
+}
+function deplacer(dx){ if(!S.piece||S.mode!=="play") return; if(!collision(S.piece.m,S.piece.x+dx,S.piece.y)){ S.piece.x+=dx; rendre(); } }
+function tourner(){
+  if(!S.piece||S.mode!=="play") return;
+  const nm=tournerCW(S.piece.m);
+  for(const dx of [0,-1,1,-2,2]){ if(!collision(nm,S.piece.x+dx,S.piece.y)){ S.piece.m=nm; S.piece.x+=dx; rendre(); return; } }
+}
+function descendre(auto){
+  if(!S.piece||S.mode!=="play") return false;
+  if(!collision(S.piece.m,S.piece.x,S.piece.y+1)){ S.piece.y++; if(!auto) S.score+=1; rendre(); return true; }
+  poser(); return false;
+}
+function chute(){
+  if(!S.piece||S.mode!=="play") return;
+  let n=0; while(!collision(S.piece.m,S.piece.x,S.piece.y+1)){ S.piece.y++; n++; }
+  S.score+=n*2; poser();
+}
+function poser(){
+  sPose();
+  for(let i=0;i<S.piece.m.length;i++) for(let j=0;j<S.piece.m[i].length;j++){
+    if(S.piece.m[i][j]){ const R=S.piece.y+i,C=S.piece.x+j; if(R>=0&&R<ROWS) S.board[R][C]=S.piece.cat; }
+  }
+  const lignes = nettoyerLignes();
+  if(lignes>0){ recompense(lignes, S.piece.cmd); }
+  if(S.pendingGarbage>0){ ajouterGarbage(S.pendingGarbage); S.pendingGarbage=0; }
+  majScore();
+  if(S.mode==="play") nouvellePiece();
+}
+function nettoyerLignes(){
+  let n=0;
+  for(let r=ROWS-1;r>=0;r--){
+    if(S.board[r].every(v=>v)){ S.board.splice(r,1); S.board.unshift(videRangee()); n++; r++; }
+  }
+  if(n>0){ board.classList.remove("clignote"); void board.offsetWidth; board.classList.add("clignote"); }
+  return n;
+}
+function recompense(lignes, cmd){
+  const ch = CHAPS[S.chap];
+  const ptsLigne=[0,100,300,500,800][lignes]||800;
+  S.score += ptsLigne;
+  // Chapitre de Pharaon : une plaie nommée tombe par ligne complétée (pas de barème générique).
+  const degatsDemandes = ch.plaies ? lignes : ([0,1,3,6,10][lignes]||10);
+  const hpAvant = S.bossHP;
+  S.bossHP = Math.max(0, S.bossHP - degatsDemandes);
+  const degatsReels = hpAvant - S.bossHP;
+  majBoss();
+  if(lignes>=4) sTetris(); else sLigne();
+  montrerCodex(cmd);
+  let delaiVictoire = 0;
+  if(ch.plaies && degatsReels>0){
+    const dejaFait = ch.hp - hpAvant;           // plaies déjà tombées avant ce coup
+    for(let k=0;k<degatsReels;k++){
+      const idx = dejaFait + k;
+      setTimeout(()=>toastPlaie(idx+1, ch.plaies.length, ch.plaies[idx]), 300 + k*650);
+    }
+    delaiVictoire = 300 + (degatsReels-1)*650 + 1000; // on laisse lire la dernière plaie
+  }
+  if(S.bossHP<=0){ setTimeout(victoireChapitre, delaiVictoire); }
+}
+/* toast dédié à l'annonce d'une plaie d'Égypte (chapitre 1) */
+function toastPlaie(n, total, nom){
+  const box=$("codex"); const t=document.createElement("div"); t.className="toast";
+  t.style.setProperty("--tcol","#c94b3a");
+  t.innerHTML='<div class="r"><span>PLAIE '+n+' / '+total+'</span><span>Pharaon résiste encore…</span></div><div class="t">'+nom+'</div>';
+  box.innerHTML=""; box.appendChild(t);
+  setTimeout(()=>{ if(t.parentNode) t.remove(); },1900);
+}
+function ajouterGarbage(nb){
+  for(let k=0;k<nb;k++){
+    const trou=(Math.random()*COLS)|0;
+    const rang=videRangee(); for(let c=0;c<COLS;c++) if(c!==trou) rang[c]="x";
+    S.board.shift(); S.board.push(rang);
+  }
+  // si la pièce active se retrouve coincée, on la remonte
+  if(S.piece){ while(collision(S.piece.m,S.piece.x,S.piece.y) && S.piece.y> -2) S.piece.y--; }
+  rendre();
+}
+function attaqueBoss(){
+  const ch = CHAPS[S.chap];
+  S.pendingGarbage += ch.atkRows;
+  sFrappe();
+  $("boss").classList.remove("frappe"); void $("boss").offsetWidth; $("boss").classList.add("frappe");
+  const msg = ch.atkMsg ? ch.atkMsg : (ch.adv + " frappe ! " + ch.atkRows + " rangée" + (ch.atkRows>1?"s":""));
+  toastAlerte(msg);
+}
+
+/* boucle temps réel */
+function boucle(t){
+  requestAnimationFrame(boucle);
+  if(S.mode!=="play"){ S.dernier=t; return; }
+  const dt=t-S.dernier; S.dernier=t;
+  S.gravAcc+=dt; S.atkAcc+=dt;
+  const g=CHAPS[S.chap].grav;
+  if(S.gravAcc>=g){ S.gravAcc=0; descendre(true); }
+  if(S.atkAcc>=CHAPS[S.chap].atkEvery){ S.atkAcc=0; attaqueBoss(); }
+}
+
+/* ==========================================================================
+   10bis) NOM DIVIN — YHWH ⇄ « L'Éternel », au choix du joueur
+   Tous les textes du corpus utilisent le jeton "YHWH" ; d(txt) le retranscrit
+   à l'affichage selon la préférence choisie. Rien n'est modifié en mémoire.
+   ========================================================================== */
+const PREF = { nom:"YHWH" };
+function d(txt){
+  if(!txt || PREF.nom==="YHWH") return txt;
+  return txt.replace(/YHWH/g, (match, offset)=>{
+    const avant = txt.slice(0, offset).trim();
+    const debutPhrase = offset===0 || avant.length===0 || /[.!?—»]\s*$/.test(avant);
+    return debutPhrase ? "L'Éternel" : "l'Éternel";
+  });
+}
+function majSigil(){
+  const el = $("sigil");
+  el.innerHTML = (PREF.nom==="YHWH") ? 'יהוה<small>YHWH</small>' : '✦<small>L\'ÉTERNEL</small>';
+}
+function texteBoutonNom(){ return "Nom divin : " + (PREF.nom==="YHWH" ? "YHWH" : "L'Éternel") + " — changer"; }
+function basculerNom(){
+  PREF.nom = (PREF.nom==="YHWH") ? "ETERNEL" : "YHWH";
+  majSigil();
+  $("btn-nom-menu").textContent = texteBoutonNom();
+  if(!$("e-codex").classList.contains("cache")) construireCodex();
+}
+
+/* ==========================================================================
+   11) INTERFACE / CODEX / SCORE
+   ========================================================================== */
+function majScore(){ $("score").textContent=S.score; }
+function majBoss(){ $("pv").style.width=(100*S.bossHP/S.bossMax)+"%"; }
+function montrerCodex(cmd){
+  S.vus.add(cmd.r);
+  const box=$("codex"); const t=document.createElement("div"); t.className="toast";
+  t.style.setProperty("--tcol","var(--"+cmd.c+")");
+  const badge = cmd.s==="NT" ? "✝ Évangile" : "✡ Torah";
+  const nat = cmd.n==="pos" ? "à faire" : "à éviter";
+  t.innerHTML='<div class="r"><span>'+cmd.r+'</span><span>'+badge+' · '+nat+'</span></div><div class="t">'+d(cmd.t)+'</div>';
+  box.innerHTML=""; box.appendChild(t);
+  setTimeout(()=>{ if(t.parentNode) t.remove(); },3100);
+}
+function toastAlerte(txt){
+  const box=$("codex"); const t=document.createElement("div"); t.className="toast";
+  t.style.setProperty("--tcol","#c9453a");
+  t.innerHTML='<div class="t" style="text-align:center">⚠ '+txt+'</div>';
+  box.innerHTML=""; box.appendChild(t);
+  setTimeout(()=>{ if(t.parentNode) t.remove(); },1800);
+}
+
+/* ==========================================================================
+   12) FLUX DES CHAPITRES / ÉCRANS
+   ========================================================================== */
+function ecran(id){ ["e-menu","e-intro","e-victoire","e-defaite","e-fin","e-codex"].forEach(e=>$(e).classList.add("cache")); if(id)$(id).classList.remove("cache"); }
+function libelleCat(c){ return {cultuel:"Cultuel",juridique:"Juridique / Civil",moral:"Moral",social:"Social"}[c]; }
+function construireCodex(){
+  let html = '<div id="codex-entete"><div class="over">CODEX</div><h2 style="margin:.15rem 0">Les commandements de l\'Alliance</h2>'
+    + '<div class="pastille" style="text-align:center;display:block;margin-bottom:.3rem">Rencontrés<b>'+S.vus.size+' / '+CMDS.length+'</b></div></div>'
+    + '<div class="codex-liste">';
+  CATS.forEach(cat=>{
+    html += '<div class="codex-cat">'+libelleCat(cat)+'</div>';
+    CMDS.filter(k=>k.c===cat).forEach(k=>{
+      const vu = S.vus.has(k.r);
+      const badge = k.s==="NT" ? "✝" : "✡";
+      html += '<div class="codex-item'+(vu?' vu':'')+'"><span class="pip" style="background:var(--'+k.c+')"></span>'
+            + '<div class="corps"><div class="ref"><span>'+k.r+' · '+badge+' · '+(k.n==="pos"?"à faire":"à éviter")+'</span></div>'
+            + d(k.t) + '</div><span class="check">'+(vu?'✓':'')+'</span></div>';
+    });
+  });
+  html += '</div><button class="bouton" id="btn-codex-fermer" style="margin-top:1rem">Retour</button>';
+  $("e-codex").innerHTML = html;
+  $("btn-codex-fermer").addEventListener("click", fermerCodex);
+}
+function ouvrirCodex(){
+  S.modeAvantCodex = S.mode;
+  if(S.mode==="play") S.mode="paused";
+  construireCodex();
+  ecran("e-codex");
+}
+function fermerCodex(){
+  const m = S.modeAvantCodex || "menu";
+  S.mode = m;
+  const carte = {menu:"e-menu", intro:"e-intro", chapwin:"e-victoire", defeat:"e-defaite", win:"e-fin"};
+  ecran((m==="play"||m==="paused") ? null : (carte[m]||"e-menu"));
+}
+function appliquerAmbiance(ch){
+  document.body.style.setProperty("--bg1",ch.bg1);
+  document.body.style.setProperty("--bg2",ch.bg2);
+  document.body.style.setProperty("--accent",ch.accent);
+}
+function poolPourChapitre(ch){
+  // priorité aux sources + catégories du chapitre, avec repli sur tout le corpus
+  let p=CMDS.filter(k=> ch.src.includes(k.s));
+  const prio=p.filter(k=> ch.focus.includes(k.c));
+  S.poolChap = prio.length>=6 ? prio.concat(p) : (p.length?p:CMDS);
+}
+function montrerIntro(i){
+  const ch=CHAPS[i]; S.chap=i; appliquerAmbiance(ch);
+  $("chap-num").textContent=(i+1)+"/6";
+  $("i-epoque").textContent=ch.epoque;
+  $("i-titre").textContent="Chapitre "+(i+1);
+  $("i-heros-nom").innerHTML="Tu incarnes<small>"+ch.heros+"</small>";
+  $("i-adv-nom").textContent="Adversaire : "+ch.adv;
+  $("i-med").innerHTML=GLYPHS[ch.glyph];
+  $("i-intro").textContent=d(ch.intro);
+  $("i-verset").textContent=d(ch.verset);
+  $("i-defi").innerHTML="<b>"+ch.defi+"</b>";
+  S.mode="intro"; ecran("e-intro");
+}
+function demarrerChapitre(i){
+  const ch=CHAPS[i]; S.chap=i; appliquerAmbiance(ch); poolPourChapitre(ch);
+  nouveauBoard();
+  S.bossMax=ch.hp; S.bossHP=ch.hp;
+  S.gravAcc=0; S.atkAcc=0; S.pendingGarbage=0;
+  S.sac=sacMelange(); S.pieceSuivante=null;
+  $("boss-titre").textContent=ch.adv;
+  $("boss-contre").textContent="↔ "+ch.heros;
+  $("boss-defi").textContent=ch.defi;
+  $("boss-av").innerHTML=GLYPHS[ch.glyph];
+  majBoss(); majScore();
+  nouvellePiece();
+  S.mode="play"; ecran(null); $("codex").innerHTML="";
+}
+function victoireChapitre(){
+  S.mode="chapwin"; sVictoire();
+  const ch=CHAPS[S.chap];
+  $("v-med").innerHTML=GLYPHS[ch.glyph];
+  $("v-titre").textContent=ch.adv+" est vaincu";
+  $("v-mot").textContent=d(ch.mot);
+  $("v-verset").textContent=d(ch.verset);
+  $("btn-suite").textContent = (S.chap>=CHAPS.length-1) ? "Voir la fin" : "Chapitre suivant";
+  ecran("e-victoire");
+}
+function chapitreSuivant(){
+  if(S.chap>=CHAPS.length-1){ victoireFinale(); return; }
+  montrerIntro(S.chap+1);
+}
+function victoireFinale(){ S.mode="win"; $("f-score").textContent=S.score; ecran("e-fin"); }
+function defaite(){
+  S.mode="defeat";
+  const ch=CHAPS[S.chap];
+  $("d-mot").textContent="« "+ch.adv+" » tient encore. Reprends le chapitre — la pile repart de zéro, ton score est conservé.";
+  ecran("e-defaite");
+}
+function nouvellePartie(){ S.score=0; majScore(); montrerIntro(0); }
+
+/* ==========================================================================
+   13) ENTRÉES
+   ========================================================================== */
+function lier(id,fn){ const el=$(id); el.addEventListener("click",(e)=>{e.preventDefault();fn();}); }
+lier("t-gauche",()=>deplacer(-1));
+lier("t-droite",()=>deplacer(1));
+lier("t-tourne",tourner);
+lier("t-bas",()=>descendre(false));
+lier("t-chute",chute);
+
+document.addEventListener("keydown",(e)=>{
+  if(S.mode!=="play") return;
+  const k=e.key;
+  if(k==="ArrowLeft"){e.preventDefault();deplacer(-1);}
+  else if(k==="ArrowRight"){e.preventDefault();deplacer(1);}
+  else if(k==="ArrowUp"){e.preventDefault();tourner();}
+  else if(k==="ArrowDown"){e.preventDefault();descendre(false);}
+  else if(k===" "){e.preventDefault();chute();}
+  else if(k==="p"||k==="P"){basculePause();}
+});
+
+// glisser sur le plateau
+let tx=null,ty=null;
+board.addEventListener("touchstart",(e)=>{tx=e.changedTouches[0].clientX;ty=e.changedTouches[0].clientY;},{passive:true});
+board.addEventListener("touchend",(e)=>{
+  if(tx===null||S.mode!=="play")return;
+  const dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;
+  if(Math.abs(dx)>Math.abs(dy)){ if(Math.abs(dx)>24) deplacer(dx>0?1:-1); }
+  else { if(dy>28) chute(); else if(dy<-18) tourner(); }
+  tx=null;
+},{passive:true});
+
+function basculePause(){
+  if(S.mode==="play"){ S.mode="paused"; toastAlerte("Pause — touche P ou ⏸ pour reprendre"); }
+  else if(S.mode==="paused"){ S.mode="play"; $("codex").innerHTML=""; }
+}
+$("btn-pause").addEventListener("click",basculePause);
+$("btn-son").addEventListener("click",()=>{
+  S.muet=!S.muet; $("btn-son").textContent=S.muet?"✕":"♪";
+  if(musicGain) musicGain.gain.value = S.muet?0:.12;
+});
+$("btn-nom").addEventListener("click", basculerNom);
+$("btn-nom-menu").addEventListener("click", basculerNom);
+$("btn-codex").addEventListener("click", ouvrirCodex);
+$("btn-codex-menu").addEventListener("click", ouvrirCodex);
+
+// boutons d'écran
+$("btn-jouer").addEventListener("click",()=>{ try{actx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){} demarrerMusique(); nouvellePartie(); });
+$("btn-combat").addEventListener("click",()=>demarrerChapitre(S.chap));
+$("btn-suite").addEventListener("click",chapitreSuivant);
+$("btn-reprendre").addEventListener("click",()=>demarrerChapitre(S.chap));
+$("btn-menu-d").addEventListener("click",()=>{ arreterMusique(); S.mode="menu"; ecran("e-menu"); });
+$("btn-rejouer").addEventListener("click",()=>{ arreterMusique(); S.mode="menu"; ecran("e-menu"); });
+
+/* ==========================================================================
+   14) TAILLE ADAPTATIVE DES CELLULES
+   ========================================================================== */
+function ajusterCellule(){
+  const arene=$("arene");
+  const dispoH=arene.clientHeight-10;
+  const dispoW=arene.clientWidth-74-16-12; // moins le panneau latéral
+  const cell=Math.max(13, Math.min(26, Math.floor(Math.min(dispoH/ROWS, dispoW/COLS))));
+  document.documentElement.style.setProperty("--cell",cell+"px");
+}
+window.addEventListener("resize",ajusterCellule);
+setTimeout(ajusterCellule,60);
+
+/* démarrage */
+majSigil();
+$("btn-nom-menu").textContent = texteBoutonNom();
+ecran("e-menu");
+requestAnimationFrame((t)=>{ S.dernier=t; requestAnimationFrame(boucle); });
+</script>
+</body>
+</html>
