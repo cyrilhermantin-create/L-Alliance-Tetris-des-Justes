@@ -1,8 +1,9 @@
 # 🎮 L'Alliance — Tetris des Justes
 
-[Licence]LICENSE)]
-[HTML5](markdownhttps://shields.io )]
-[JavaScript](https://shields.io)]
+![License](https://img.shields.io/badge/licence-MIT-blue.svg)
+![HTML5](https://img.shields.io/badge/HTML5-e34f26.svg)
+![JavaScript](https://img.shields.io/badge/JavaScript-Vanilla-f7df1e.svg)
+![Statut](https://img.shields.io/badge/statut-en%20développement-orange.svg)
 
 **L'Alliance — Tetris des Justes** est un jeu de réflexion et d'adresse sur navigateur web qui revisite le gameplay intemporel du *Tetris* à travers un prisme historique et spirituel, de l'Exode aux Évangiles.
 
@@ -10,110 +11,133 @@ Empilez les pièces thématiques (Cultuel, Juridique, Moral, Social), complétez
 
 ---
 
-## 🌐 Démo en Ligne
+## 🌐 Démo en ligne
 
-Jouez instantanément au jeu directement depuis votre navigateur :
-👉 **[Cliquez ici pour jouer à L'Alliance](https://github.io)** *(Pensez à remplacer ce lien par votre URL GitHub Pages)*
+👉 **[Jouer à L'Alliance](https://cyrilhermantin-create.github.io/L-Alliance-Tetris-des-Justes/)**
+*(actif une fois GitHub Pages activé sur le dépôt — voir la section Installation ci-dessous)*
 
 ---
 
-## 🧠 Démarche Pédagogique & Développement
+## 🧠 Démarche pédagogique & développement
 
 Ce projet **open source et entièrement gratuit** a été réalisé dans un but purement **pédagogique**. Il vise à rendre l'apprentissage et la mémorisation des textes anciens ludiques, interactifs et accessibles à tous à travers des mécaniques de jeu vidéo éprouvées.
 
-La base technique ainsi que l'ensemble du code HTML, JavaScript et CSS ont été développés en collaboration avec l'intelligence artificielle **Claude AI (version Opus 4.8)**.
+L'ensemble du code HTML, CSS et JavaScript a été développé en collaboration avec l'assistant d'intelligence artificielle **Claude (Anthropic)**, sur la base des mécaniques de jeu, de la recherche exégétique et de la direction artistique conçues par l'auteur.
 
 ---
 
-## 📜 Travail d'Exégèse & Sources Textuelles
+## 📜 Travail d'exégèse & sources textuelles
 
-Les idées originales et la structure des commandements intégrés au gameplay sont le fruit d'un travail d'exégèse approfondi des Écritures. Le codex du jeu s'appuie rigoureusement sur les versions textuelles et sources suivantes :
-*   **La Bible Zadok Kahn** (Référence principale pour le texte de la Torah)
-*   **La Bible Crampon** 
-*   **Les enseignements du Rabbi Yeshoua**, basés sur les recherches et les manuscrits de [HebrewGospels.com](https://hebrewgospels.com)
+Les idées originales et la structure des commandements intégrés au gameplay sont le fruit d'un travail d'exégèse mené par l'auteur. Le codex du jeu s'appuie sur les sources suivantes :
+*   **La Bible Zadok Kahn** (référence principale pour le texte de la Torah)
+*   **La Bible Crampon** (référence pour les récits du Nouveau Testament et la nomenclature des dix plaies d'Égypte)
+*   Recherches complémentaires de l'auteur sur les enseignements attribués à Yeshoua
+
+> Le décompte des commandements suit une méthodologie propre à l'auteur (regroupement macro-sémantique par blocs), distincte de l'énumération classique des 613 mitsvot du traité Makkot 23b, et unifiant volontairement corpus de la Torah et enseignements des Évangiles. C'est un choix explicite, assumé comme tel — pas une prétention à l'exhaustivité consensuelle entre traditions.
 
 ---
 
-## ✍️ Auteur & Crédits
+## ✍️ Auteur & crédits
 
-*   **Concepteur-Auteur et Donneur d'ordre :** Cyril H.
+*   **Concepteur-auteur et donneur d'ordre :** Cyril H.
 *   **Conception des mécaniques de jeu et recherche exégétique :** Cyril H.
-*   **Assistance au développement et à la programmation :** Claude AI (Opus 4.8)
-
-*Toute reproduction, utilisation ou amélioration du code doit obligatoirement conserver le crédit de l'auteur original (Cyril H.), conformément à la philosophie open source et au respect des droits d'auteur du projet.*
+*   **Assistance au développement et à la programmation :** Claude (Anthropic)
 
 ---
 
-## 🎯 Concept & Gameplay
+## 🎯 Concept & gameplay
 
 Le jeu fusionne la tension mécanique du puzzle-game et la progression narrative d'un mode campagne en 6 chapitres.
 
-*   **Mécanique centrale :** Chaque ligne complétée valide un commandement et fait reculer l'adversaire de l'histoire. Si la pile déborde, la partie est perdue, mais le joueur est invité à reprendre courage et à réessayer.
-*   **Les 6 Épreuves (Chapitres) :** Progressez à travers l'histoire en affrontant 6 figures historiques et bibliques emblématiques :
-    1. 🇪🇬 **Pharaon** (L'Exode)
-    2. ⚔️ **Goliath**
-    3. 👑 **Haman**
-    4. 🏛️ **Antiochus**
-    5. 🏰 **Hérode**
-    6. 🏛️ **Pilate**
-*   **Inclusivité & Respect :** Configuration personnalisable de l'affichage du Nom divin selon la confession et la sensibilité du joueur (`YHWH` ou `L'Éternel`).
+*   **Mécanique centrale :** chaque ligne complétée accomplit un commandement (affiché avec sa référence) et inflige des dégâts à l'adversaire du chapitre. Si la pile déborde, la partie est perdue — sauf si une vie de secours est disponible.
+*   **Couleur = catégorie :** chaque pièce est colorée selon la vraie catégorie du commandement qu'elle porte (Cultuel, Juridique, Moral, Social), affichée en légende à l'écran.
+*   **Les 6 épreuves (chapitres) :** chacune oppose une figure biblique à son adversaire, avec des étapes nommées et sourcées, et des répliques du boss propres à l'histoire.
+
+    | # | Chapitre | Le Juste | L'adversaire |
+    |---|----------|----------|---------------|
+    | 1 | L'Exode | Moshé | Pharaon (10 plaies d'Égypte) |
+    | 2 | 1 Samuel 17 | David | Goliath |
+    | 3 | Pourim | Esther & Mardochée | Haman |
+    | 4 | Hanouka | Les Maccabées | Antiochus Épiphane |
+    | 5 | Le Jourdain | Yohanan le Baptiseur | Hérode |
+    | 6 | La Passion | Yeshoua | Pilate |
+
+*   **Interventions divines (bonus) :** des pièces dorées apparaissent occasionnellement. Complétées, elles déclenchent un miracle inspiré des récits bibliques — l'ouverture de la Mer (efface les rangées adverses), le Rocher (vie de secours), la Manne (bonus de points).
+*   **Vies de secours :** jusqu'à 3, gagnées via les miracles. Elles dégagent la pile in extremis plutôt que de mettre fin à la partie sèchement.
+*   **Duel local (2 joueurs) :** deux joueurs peuvent affronter le même adversaire à tour de rôle, sur le même appareil, avec un score individuel suivi en plus du score commun.
+*   **Codex :** un écran recense les commandements croisés, groupés par catégorie, avec suivi de progression.
+*   **Inclusivité & respect :** affichage du Nom divin personnalisable (`YHWH` ou `L'Éternel`) selon la confession et la sensibilité du joueur.
+*   **Interface en 14 langues :** français, anglais, espagnol, allemand, néerlandais, portugais, italien, mandarin, russe, arabe, hébreu, créole haïtien, créole mauricien, créole seychellois.
+
+> **Portée linguistique :** seule l'interface (menus, boutons, catégories) est traduite dans les 14 langues. Les textes bibliques du jeu (récits des chapitres, versets, corpus des commandements) restent en français, par souci d'exactitude — une traduction fidèle de contenu scripturaire demande une relecture humaine spécialisée, langue par langue, qui n'a pas encore été menée. Le jeu l'indique lui-même à l'écran.
+
+> **Portée multijoueur :** le mode « duel » est local (même appareil, deux joueurs qui alternent). Il n'y a pas de multijoueur en ligne à ce stade — cela demanderait une infrastructure serveur qui n'existe pas encore pour ce projet.
 
 ---
 
 ## 🕹️ Commandes du jeu
 
-Le jeu est entièrement optimisé pour être joué instantanément sur toutes les plateformes :
+### 💻 Sur ordinateur
+*   `←` / `→` : déplacer la pièce
+*   `↑` : tourner la pièce
+*   `↓` : descente rapide (soft drop)
+*   `Espace` : chute instantanée (hard drop)
+*   `P` : pause / reprendre
 
-### 💻 Sur Ordinateur
-*   `←` / `→` : Déplacer la pièce à gauche ou à droite
-*   `↑` : Tourner la pièce
-*   `↓` : Descendre plus rapidement (Soft Drop)
-*   `Espace` : Chute instantanée de la pièce (Hard Drop)
-*   `P` : Mettre le jeu en pause / Reprendre
-
-### 📱 Sur Smartphone
-*   Interface tactile dédiée très simple d'utilisation avec les **5 touches directionnelles** intégrées directement au bas de l'écran.
-
----
-
-## 🛠️ Stack Technique
-
-Ce projet a été développé de manière épurée, sans dépendances ni frameworks lourds, afin de garantir une légèreté maximale et une compatibilité totale sur tous les navigateurs :
-*   **Frontend :** HTML5 (Canvas graphique pour le rendu du Tetris)
-*   **Styles :** CSS3 (Interface entièrement responsive adaptée aux mobiles et tablettes)
-*   **Logique de jeu :** JavaScript (Vanilla JS) gérant la physique des blocs, le système de score, la détection des lignes et la machine à états des chapitres.
-*   **Données :** Structure d'objets JS/JSON pour le *Codex des commandements*.
+### 📱 Sur smartphone
+*   Cinq boutons tactiles dédiés en bas de l'écran (gauche, tourner, droite, descendre, chute rapide)
+*   Glisser le doigt sur le plateau fonctionne aussi (balayage latéral, vers le bas ou vers le haut)
 
 ---
 
-## 🚀 Installation et Lancement Local
+## 🛠️ Stack technique
 
-Aucun serveur ou outil de build complexe n'est requis. Le jeu s'exécute directement en local.
+Projet volontairement minimaliste, sans dépendance ni framework, pour une compatibilité maximale :
+*   **Structure :** un seul fichier HTML autonome (HTML + CSS + JavaScript)
+*   **Rendu du plateau :** grille CSS (`display:grid`), pas de `<canvas>`
+*   **Logique de jeu :** JavaScript (Vanilla JS) — moteur Tetris (collision, rotation, gravité), machine à états des chapitres, système de bonus, minuteur d'attaque du boss
+*   **Son :** synthétisé en direct via la Web Audio API (aucun fichier audio externe, aucune mélodie existante reproduite)
+*   **Données :** objets JavaScript pour le corpus de commandements et le dictionnaire de traduction
+*   **Aucune dépendance externe**, à l'exception des polices Google Fonts (Cinzel, Alegreya, Frank Ruhl Libre)
 
-1. **Clonez le dépôt :**
+---
+
+## 🚀 Installation et lancement local
+
+Le projet tient dans **un seul fichier HTML**. Aucun outil de build n'est nécessaire.
+
+### Lancer en local
+1. Clonez le dépôt :
    ```bash
-   git clone https://github.com
+   git clone https://github.com/cyrilhermantin-create/L-Alliance-Tetris-des-Justes.git
+   cd L-Alliance-Tetris-des-Justes
    ```
-2. **Accédez au dossier :**
-   ```bash
-   cd tetris-des-justes
-   ```
-3. **Lancez le jeu :**
-   Ouvrez simplement le fichier `index.html` dans votre navigateur web favori (Double-clic sur le fichier).
+   — ou téléchargez simplement le fichier `alliance-tetris.html` seul.
+2. Double-cliquez dessus, ou ouvrez-le depuis votre navigateur (`Fichier → Ouvrir`).
+
+### Publier sur GitHub Pages
+1. Dans le dépôt, renommez `alliance-tetris.html` en `index.html` (ou configurez Pages pour servir ce fichier précisément).
+2. Dans **Settings → Pages** du dépôt, activez GitHub Pages sur la branche principale (dossier racine `/`).
+3. Le jeu devient accessible à l'adresse ci-dessus, installable en "app" sur mobile via *Ajouter à l'écran d'accueil*.
 
 ---
 
 ## 🤝 Contribution
 
-Les contributions pour enrichir le codex, optimiser le gameplay ou améliorer l'interface visuelle sont les bienvenues !
+Les contributions pour enrichir le codex, traduire les textes bibliques (voir la note sur la portée linguistique ci-dessus), optimiser le gameplay ou améliorer l'interface sont les bienvenues.
+
 1. Forkez le projet.
-2. Créez une branche pour votre fonctionnalité (`git checkout -b feature/Amelioration`).
-3. Commitez vos changements (`git commit -m 'Ajout d'une fonctionnalité'`).
-4. Poussez la branche (`git push origin feature/Amelioration`).
+2. Créez une branche pour votre fonctionnalité (`git checkout -b feature/ma-fonctionnalite`).
+3. Commitez vos changements (`git commit -m "Ajout de ma fonctionnalité"`).
+4. Poussez la branche (`git push origin feature/ma-fonctionnalite`).
 5. Ouvrez une **Pull Request**.
+
+Une relecture par un locuteur natif est particulièrement bienvenue pour les traductions en créole haïtien, mauricien et seychellois, réalisées de bonne foi mais sans validation par un locuteur natif.
 
 ---
 
 ## 📄 Licence
 
-Ce projet est distribué sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
+Ce projet est distribué sous licence **MIT** — voir le fichier `LICENSE`. Cela signifie concrètement que vous êtes libre d'utiliser, modifier et redistribuer ce code, y compris à des fins commerciales, à condition de conserver la mention de copyright et le texte de la licence.
+
+Un crédit visible vers ce projet original en cas de réutilisation ou d'adaptation est apprécié, sans être une obligation légale distincte de la licence MIT.
