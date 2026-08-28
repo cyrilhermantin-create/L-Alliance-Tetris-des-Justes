@@ -39,8 +39,8 @@ Les idées originales et la structure des commandements intégrés au gameplay s
 
 ## ✍️ Auteur & crédits
 
-*   **Concepteur-auteur et donneur d'ordre :** Cyril H.
-*   **Conception des mécaniques de jeu et recherche exégétique :** Cyril H.
+*   **Concepteur-auteur et donneur d'ordre :** Cyril HERMANTIN.
+*   **Conception des mécaniques de jeu et recherche exégétique :** Cyril HERMANTIN.
 *   **Assistance au développement et à la programmation :** Claude (Anthropic)
 
 ---
