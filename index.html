@@ -10,18 +10,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Alegreya:ital@0;1&family=Frank+Ruhl+Libre:wght@500;700&display=swap" rel="stylesheet">
 <style>
 /* ============================================================
-   L'ALLIANCE — TETRIS DES JUSTES
-   4 catégories = 4 couleurs. 6 chapitres = 6 boss + 6 ambiances.
-   Fichier unique, sans librairie. Commentaires en français.
+   L'ALLIANCE — TETRIS DES JUSTES (v3)
+   Nouveautés : i18n 14 langues, bonus « interventions divines »,
+   vies de secours, duel local à 2, narration des 6 chapitres.
    ============================================================ */
 :root{
-  /* ambiance du chapitre (réécrite par le JS à chaque histoire) */
   --bg1:#101a26; --bg2:#0c1119; --accent:#c9a24b;
-  /* couleurs FIXES des 4 catégories (le joueur les apprend) */
   --cultuel:#e0a82e;  --cultuel2:#a87c17;
   --juridique:#3e7cb1;--juridique2:#295a85;
   --moral:#4ea277;    --moral2:#357a56;
   --social:#d9694a;   --social2:#a8472f;
+  --miracle:#e6c15a;  --miracle2:#8f6a1f;
   --garbage:#3a3f47;  --garbage2:#22262c;
   --clair:#efe8da; --estompe:#8a94a1;
   --cell:22px;
@@ -34,13 +33,14 @@ body{
   transition:background .8s ease;
   overflow:hidden; user-select:none;-webkit-user-select:none; touch-action:manipulation;
 }
+[dir="rtl"] #boss, [dir="rtl"] #top{ direction:rtl; }
 #app{
   position:relative; width:100%; max-width:480px; margin:0 auto;
   height:100dvh; max-height:1000px; display:flex; flex-direction:column;
   border-left:1px solid rgba(201,162,75,.12); border-right:1px solid rgba(201,162,75,.12);
 }
 
-/* ---------- BANDEAU HAUT : Nom divin + score ---------- */
+/* ---------- BANDEAU HAUT ---------- */
 #top{ display:flex; align-items:center; gap:.32rem; padding:.5rem .55rem .3rem;}
 .sigil{ font-family:'Frank Ruhl Libre',serif; font-size:1.3rem; color:var(--accent); line-height:1; letter-spacing:.03em; flex:none;}
 .sigil small{ display:block; font-family:'Cinzel',serif; font-size:.42rem; letter-spacing:.22em; color:var(--estompe); margin-top:2px; white-space:nowrap;}
@@ -61,6 +61,8 @@ body{
 #pv-cadre{ height:9px; background:rgba(255,255,255,.09); border-radius:99px; overflow:hidden; margin-top:4px;}
 #pv{ height:100%; width:100%; background:linear-gradient(90deg,#c9453a,#e0a82e); transition:width .3s ease;}
 #boss-defi{ font-size:.62rem; color:var(--estompe); margin-top:3px; font-style:italic;}
+#vies-ligne{ font-size:.62rem; color:var(--estompe); margin-top:2px;}
+#tour-ligne{ font-size:.62rem; color:var(--accent); margin-top:2px; font-weight:600;}
 #boss.frappe{ animation:frappe .4s ease;}
 @keyframes frappe{0%,100%{transform:none}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
 
@@ -75,6 +77,8 @@ body{
 .c.ghost{ background:rgba(255,255,255,.05); border:1px dashed rgba(255,255,255,.18);}
 .c.cultuel{ background:var(--cultuel);}   .c.juridique{background:var(--juridique);}
 .c.moral{ background:var(--moral);}       .c.social{background:var(--social);}
+.c.miracle{ background:linear-gradient(135deg,var(--miracle),var(--miracle2),var(--miracle)); background-size:220% 220%; animation:scintille 1.6s ease infinite;}
+@keyframes scintille{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 .c.x{ background:linear-gradient(180deg,var(--garbage),var(--garbage2));}
 #board.clignote{ animation:clignote .25s ease;}
 @keyframes clignote{50%{filter:brightness(1.6)}}
@@ -86,6 +90,7 @@ body{
 #next .c{ width:12px;height:12px;}
 .legende .item{ display:flex; align-items:center; gap:5px; font-size:.56rem; margin:3px 0; color:var(--clair);}
 .legende .pip{ width:11px;height:11px;border-radius:3px;flex:none;}
+.legende .pip.miracle-pip{ background:linear-gradient(135deg,var(--miracle),var(--miracle2));}
 
 /* ---------- COMMANDES TACTILES ---------- */
 #pad{ display:flex; gap:.4rem; padding:.5rem .8rem calc(.6rem + env(safe-area-inset-bottom));}
@@ -105,14 +110,14 @@ body{
 @keyframes sortir{to{opacity:0;transform:translateY(-10px)}}
 
 /* ---------- ÉCRANS ---------- */
-.ecran{ position:absolute; inset:0; z-index:20; padding:1.4rem;
+.ecran{ position:absolute; inset:0; z-index:20; padding:1.3rem;
   background:linear-gradient(180deg, rgba(10,14,20,.94), rgba(10,14,20,.985));
-  display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:.7rem; overflow-y:auto;}
+  display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:.6rem; overflow-y:auto;}
 .ecran.cache{ display:none;}
-.ecran .over{ font-family:'Cinzel',serif; letter-spacing:.22em; font-size:.62rem; color:var(--accent);}
-.ecran h1{ font-family:'Cinzel',serif; font-weight:700; margin:0; font-size:1.7rem; letter-spacing:.06em; color:var(--clair);}
-.ecran h2{ font-family:'Cinzel',serif; font-weight:700; margin:.1rem 0; font-size:1.3rem; color:var(--clair);}
-.ecran p{ color:var(--estompe); max-width:36ch; line-height:1.5; font-size:.92rem; margin:.15rem 0;}
+.ecran .over{ font-family:'Cinzel',serif; letter-spacing:.22em; font-size:.6rem; color:var(--accent);}
+.ecran h1{ font-family:'Cinzel',serif; font-weight:700; margin:0; font-size:1.6rem; letter-spacing:.06em; color:var(--clair);}
+.ecran h2{ font-family:'Cinzel',serif; font-weight:700; margin:.1rem 0; font-size:1.25rem; color:var(--clair);}
+.ecran p{ color:var(--estompe); max-width:36ch; line-height:1.5; font-size:.9rem; margin:.15rem 0;}
 .duel{ display:flex; align-items:center; gap:.9rem; margin:.3rem 0;}
 .duel .who{ font-family:'Cinzel',serif; font-size:.72rem; letter-spacing:.05em;}
 .duel .who small{ display:block; font-family:'Alegreya',serif; font-style:italic; letter-spacing:0; color:var(--estompe); font-size:.62rem;}
@@ -120,16 +125,21 @@ body{
 .med{ width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,var(--accent),#151515);}
 .med svg{width:32px;height:32px;color:#0c0c0c;}
 .verset{ font-style:italic; color:var(--clair); background:rgba(201,162,75,.08); border:1px solid rgba(201,162,75,.22);
-  border-radius:12px; padding:.7rem .9rem; max-width:36ch; font-size:.9rem; line-height:1.45;}
+  border-radius:12px; padding:.65rem .85rem; max-width:36ch; font-size:.86rem; line-height:1.4;}
 .bouton{ font-family:'Cinzel',serif; letter-spacing:.06em; font-weight:700; border:none; border-radius:12px;
-  padding:.8rem 1.7rem; font-size:.98rem; cursor:pointer; margin-top:.3rem;
+  padding:.75rem 1.5rem; font-size:.94rem; cursor:pointer; margin-top:.25rem;
   background:linear-gradient(180deg,var(--accent),#9c7a28); color:#1a1305; box-shadow:0 6px 16px rgba(201,162,75,.3);}
 .bouton:active{ transform:translateY(2px);}
-.bouton.mineur{ background:none; border:1px solid rgba(201,162,75,.4); color:var(--accent); box-shadow:none; padding:.6rem 1.2rem; font-size:.82rem;}
-.grand-score{ font-family:'Cinzel',serif; font-size:2.4rem; color:var(--accent); line-height:1;}
-.note{ font-size:.66rem; color:#5d6773; max-width:40ch; line-height:1.5; margin-top:.4rem;}
-.regles{ font-size:.82rem; color:var(--clair); line-height:1.6; max-width:34ch;}
+.bouton.mineur{ background:none; border:1px solid rgba(201,162,75,.4); color:var(--accent); box-shadow:none; padding:.55rem 1rem; font-size:.78rem;}
+.bouton.mineur.actif{ background:rgba(201,162,75,.22); color:var(--clair);}
+.grand-score{ font-family:'Cinzel',serif; font-size:2.3rem; color:var(--accent); line-height:1;}
+.note{ font-size:.64rem; color:#5d6773; max-width:40ch; line-height:1.5; margin-top:.3rem;}
+.regles{ font-size:.8rem; color:var(--clair); line-height:1.5; max-width:34ch;}
 .regles b{ color:var(--accent);}
+#sel-langue{ background:#1a222e;color:var(--clair);border:1px solid rgba(201,162,75,.35);border-radius:8px;
+  padding:.32rem .5rem;font-family:'Alegreya',serif;font-size:.82rem;}
+
+/* ---------- CODEX ---------- */
 .codex-liste{ width:100%; max-width:420px; text-align:left; margin:0 auto;}
 .codex-cat{ font-family:'Cinzel',serif; font-size:.66rem; letter-spacing:.14em; color:var(--accent); text-transform:uppercase; margin:.9rem 0 .35rem; padding-top:.5rem; border-top:1px solid rgba(255,255,255,.08);}
 .codex-liste .codex-cat:first-child{ margin-top:0; border-top:none; padding-top:0;}
@@ -140,7 +150,10 @@ body{
 .codex-item .ref{ font-family:'Cinzel',serif; font-size:.56rem; letter-spacing:.04em; color:var(--estompe); display:flex; justify-content:space-between; gap:.4rem; margin-bottom:.15rem;}
 .codex-item .check{ font-size:.85rem; flex:none; color:#6fb7a0; width:16px; text-align:center;}
 #codex-entete{ position:sticky; top:0; background:inherit; padding-bottom:.3rem;}
-@media (prefers-reduced-motion:reduce){ *{animation-duration:.001ms!important} #board,#boss,body{transition:none!important} }
+@media (prefers-reduced-motion:reduce){
+  *{ animation-duration:.001ms!important;}
+  #board,#boss,body{transition:none!important}
+}
 </style>
 </head>
 <body>
@@ -148,11 +161,11 @@ body{
 
   <div id="top">
     <div class="sigil" id="sigil">יהוה<small>YHWH</small></div>
-    <div class="titre">L'ALLIANCE</div>
-    <div class="pastille">Score<b id="score">0</b></div>
-    <div class="pastille">Chap.<b id="chap-num">1/6</b></div>
-    <button class="mini-btn" id="btn-nom" aria-label="Basculer YHWH / L'Éternel" title="Basculer YHWH / L'Éternel">✦</button>
-    <button class="mini-btn" id="btn-codex" aria-label="Codex des commandements" title="Codex">📜</button>
+    <div class="titre" data-i18n="app_title">L'ALLIANCE</div>
+    <div class="pastille"><span data-i18n="lbl_score">Score</span><b id="score">0</b></div>
+    <div class="pastille"><span data-i18n="lbl_chap">Chap.</span><b id="chap-num">1/6</b></div>
+    <button class="mini-btn" id="btn-nom" aria-label="YHWH / L'Éternel" title="YHWH / L'Éternel">✦</button>
+    <button class="mini-btn" id="btn-codex" aria-label="Codex" title="Codex">📜</button>
     <button class="mini-btn" id="btn-pause" aria-label="Pause">⏸</button>
     <button class="mini-btn" id="btn-son" aria-label="Son">♪</button>
   </div>
@@ -163,19 +176,22 @@ body{
       <div id="boss-nom"><span id="boss-titre">—</span><span class="contre" id="boss-contre"></span></div>
       <div id="pv-cadre"><div id="pv"></div></div>
       <div id="boss-defi"></div>
+      <div id="vies-ligne"></div>
+      <div id="tour-ligne" style="display:none"></div>
     </div>
   </div>
 
   <div id="arene">
     <div id="board-wrap"><div id="board"></div></div>
     <div id="lat">
-      <div class="boite"><div class="lbl">SUIVANT</div><div id="next"></div></div>
+      <div class="boite"><div class="lbl">▶▶</div><div id="next"></div></div>
       <div class="boite legende">
-        <div class="lbl">CATÉGORIES</div>
-        <div class="item"><span class="pip" style="background:var(--cultuel)"></span>Cultuel</div>
-        <div class="item"><span class="pip" style="background:var(--juridique)"></span>Juridique</div>
-        <div class="item"><span class="pip" style="background:var(--moral)"></span>Moral</div>
-        <div class="item"><span class="pip" style="background:var(--social)"></span>Social</div>
+        <div class="lbl">···</div>
+        <div class="item"><span class="pip" style="background:var(--cultuel)"></span><span data-i18n="cat_cultuel">Cultuel</span></div>
+        <div class="item"><span class="pip" style="background:var(--juridique)"></span><span data-i18n="cat_juridique">Juridique</span></div>
+        <div class="item"><span class="pip" style="background:var(--moral)"></span><span data-i18n="cat_moral">Moral</span></div>
+        <div class="item"><span class="pip" style="background:var(--social)"></span><span data-i18n="cat_social">Social</span></div>
+        <div class="item"><span class="pip miracle-pip"></span>✦ Miracle</div>
       </div>
     </div>
     <div id="codex"></div>
@@ -191,20 +207,44 @@ body{
 
   <!-- ÉCRAN MENU -->
   <div class="ecran" id="e-menu">
-    <div class="sigil" style="font-size:2.4rem">יהוה</div>
-    <h1>L'Alliance</h1>
-    <div class="over">TETRIS DES JUSTES · DE L'EXODE AUX ÉVANGILES</div>
-    <p>Empile les pièces, complète des rangées. Chaque rangée accomplie <b style="color:var(--accent)">accomplit un commandement</b> et fait reculer l'adversaire de l'histoire.</p>
-    <div class="regles">
-      <b>Téléphone :</b> les 5 touches du bas.<br>
-      <b>Ordinateur :</b> ← → déplacer · ↑ tourner · ↓ descendre · Espace chute · P pause.
+    <div class="sigil" style="font-size:2.2rem">יהוה</div>
+    <h1 data-i18n="menu_h1">L'Alliance</h1>
+    <div class="over" data-i18n="menu_kicker">TETRIS DES JUSTES · DE L'EXODE AUX ÉVANGILES</div>
+    <p data-i18n="menu_p">Des pièces tombent, tu bâtis des rangées. Chaque rangée accomplie fait reculer l'adversaire de l'histoire.</p>
+    <div class="regles" data-i18n="menu_rules">Téléphone : 5 touches en bas · Ordinateur : flèches + espace.</div>
+
+    <div style="display:flex;gap:.4rem;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:.15rem">
+      <label style="font-size:.66rem;color:var(--estompe)" data-i18n="lang_lbl">Langue</label>
+      <select id="sel-langue">
+        <option value="fr">Français</option>
+        <option value="en">English</option>
+        <option value="es">Español</option>
+        <option value="de">Deutsch</option>
+        <option value="nl">Nederlands</option>
+        <option value="pt">Português</option>
+        <option value="it">Italiano</option>
+        <option value="zh">中文</option>
+        <option value="ru">Русский</option>
+        <option value="ar">العربية</option>
+        <option value="he">עברית</option>
+        <option value="ht">Kreyòl Ayisyen</option>
+        <option value="mfe">Kreol Morisien</option>
+        <option value="crs">Kreol Seselwa</option>
+      </select>
     </div>
+    <p class="note" data-i18n="scope_note" style="margin-top:-.15rem">L'interface change de langue ; les textes bibliques restent en français pour l'instant.</p>
+
+    <div style="display:flex;gap:.4rem;justify-content:center;margin-top:.15rem">
+      <button class="bouton mineur actif" id="btn-mode-solo" data-i18n="mode_solo">Solo</button>
+      <button class="bouton mineur" id="btn-mode-duel" data-i18n="mode_duel">Duel local (2 joueurs)</button>
+    </div>
+
     <div style="display:flex; gap:.5rem; flex-wrap:wrap; justify-content:center;">
-      <button class="bouton mineur" id="btn-nom-menu">Nom divin : YHWH — changer</button>
-      <button class="bouton mineur" id="btn-codex-menu">📜 Codex des commandements</button>
+      <button class="bouton mineur" id="btn-nom-menu"></button>
+      <button class="bouton mineur" id="btn-codex-menu" data-i18n="btn_codex">📜 Codex des commandements</button>
     </div>
-    <button class="bouton" id="btn-jouer">Commencer l'Exode</button>
-    <p class="note">6 chapitres, 6 adversaires : Pharaon, Goliath, Haman, Antiochus, Hérode, Pilate. Corpus : Torah (Zadok Kahn) + commandements de Yeshoua. Selon ta confession, affiche le Nom divin en <b style="color:var(--accent)">YHWH</b> ou en <b style="color:var(--accent)">L'Éternel</b> — voir la note du concepteur en bas de la conversation.</p>
+    <button class="bouton" id="btn-jouer" data-i18n="btn_start">Commencer l'Exode</button>
+    <p class="note">6 chapitres, 6 adversaires : Pharaon, Goliath, Haman, Antiochus, Hérode, Pilate. Corpus : Torah (Zadok Kahn) + commandements de Yeshoua. Guette les pièces dorées : ce sont des interventions divines.</p>
   </div>
 
   <!-- ÉCRAN INTRO CHAPITRE -->
@@ -220,7 +260,7 @@ body{
     <p id="i-intro"></p>
     <div class="verset" id="i-verset"></div>
     <div id="i-defi" class="regles"></div>
-    <button class="bouton" id="btn-combat">Au combat</button>
+    <button class="bouton" id="btn-combat" data-i18n="btn_combat">Au combat</button>
   </div>
 
   <!-- ÉCRAN VICTOIRE CHAPITRE -->
@@ -235,22 +275,22 @@ body{
 
   <!-- ÉCRAN DÉFAITE -->
   <div class="ecran cache" id="e-defaite">
-    <div class="over">LA PILE A DÉBORDÉ</div>
-    <h2 id="d-titre">Reprends courage</h2>
+    <div class="over" data-i18n="defeat_over">LA PILE A DÉBORDÉ</div>
+    <h2 id="d-titre" data-i18n="defeat_h">Reprends courage</h2>
     <p id="d-mot"></p>
-    <button class="bouton" id="btn-reprendre">Reprendre le chapitre</button>
-    <button class="bouton mineur" id="btn-menu-d">Retour au menu</button>
+    <button class="bouton" id="btn-reprendre" data-i18n="btn_reprendre">Reprendre le chapitre</button>
+    <button class="bouton mineur" id="btn-menu-d" data-i18n="btn_menu">Retour au menu</button>
   </div>
 
   <!-- ÉCRAN VICTOIRE FINALE -->
   <div class="ecran cache" id="e-fin">
     <div class="sigil" style="font-size:2rem">יהוה</div>
-    <div class="over">L'ALLIANCE ACCOMPLIE</div>
-    <h1>Bravo !</h1>
+    <div class="over" data-i18n="win_over">L'ALLIANCE ACCOMPLIE</div>
+    <h1 data-i18n="win_h">Bravo !</h1>
     <p>De la sortie d'Égypte au commandement nouveau, tu as traversé les six épreuves.</p>
     <div class="grand-score" id="f-score">0</div>
     <p class="note">Tu as croisé des dizaines de commandements des cinq livres et des Évangiles. Le tableur reste la référence exhaustive ; ce jeu en est la porte d'entrée.</p>
-    <button class="bouton" id="btn-rejouer">Tout recommencer</button>
+    <button class="bouton" id="btn-rejouer" data-i18n="btn_rejouer">Tout recommencer</button>
   </div>
 
   <!-- ÉCRAN CODEX -->
@@ -266,12 +306,9 @@ body{
 const CATS = ["cultuel","juridique","moral","social"];
 
 /* ==========================================================================
-   2) LE CORPUS  (r=référence, n=nature pos/neg, c=catégorie, s=source, t=texte)
-   Nom divin restauré en YHWH, à la demande du concepteur.
-   Pour AJOUTER un commandement : copie une ligne et remplis-la. C'est tout.
+   2) LE CORPUS (69 commandements, Torah + Évangiles). Format inchangé.
    ========================================================================== */
 const CMDS = [
-  // ---------------- TORAH ----------------
   {r:"Genèse 1:28",     n:"pos",c:"juridique",s:"AT",t:"Soyez féconds, multipliez-vous et remplissez la terre."},
   {r:"Genèse 17:10",    n:"pos",c:"cultuel",  s:"AT",t:"Que tout mâle soit circoncis : signe de l'alliance d'Abraham."},
   {r:"Genèse 32:33",    n:"neg",c:"cultuel",  s:"AT",t:"Ne mange pas le nerf sciatique, en mémoire de la lutte de Jacob."},
@@ -323,7 +360,6 @@ const CMDS = [
   {r:"Deutéronome 25:4",n:"neg",c:"moral",    s:"AT",t:"Ne muselle pas le bœuf qui foule le grain."},
   {r:"Deutéronome 25:13",n:"neg",c:"juridique",s:"AT",t:"N'aie pas dans ton sac deux poids différents."},
   {r:"Deutéronome 25:17",n:"pos",c:"juridique",s:"AT",t:"Souviens-toi d'Amalek ; efface sa mémoire."},
-  // ---------------- ÉVANGILES (extension du concepteur) ----------------
   {r:"Matthieu 3:2",    n:"pos",c:"moral",    s:"NT",t:"Convertissez-vous, car le Royaume des cieux est proche."},
   {r:"Matthieu 4:10",   n:"pos",c:"cultuel",  s:"NT",t:"Tu adoreras YHWH ton Dieu, et Lui seul tu serviras."},
   {r:"Matthieu 5:16",   n:"pos",c:"moral",    s:"NT",t:"Que votre lumière brille devant les hommes par vos œuvres."},
@@ -345,7 +381,7 @@ const CMDS = [
 ];
 
 /* ==========================================================================
-   3) LES SIX CHAPITRES (boss, ambiance, difficulté, récit)
+   3) LES SIX CHAPITRES — boss, étapes nommées, répliques
    ========================================================================== */
 const CHAPS = [
   { adv:"Pharaon", heros:"Moshé", epoque:"L'ÉGYPTE · LIVRE DE L'EXODE",
@@ -355,57 +391,112 @@ const CHAPS = [
     intro:"YHWH envoie Moshé réclamer la libération du peuple. Pharaon endurcit son cœur à chaque sommation — mais dix plaies vont s'abattre, une à une, jusqu'à ce qu'il cède.",
     defi:"Objectif : faire tomber, une à une, les 10 plaies d'Égypte.",
     src:["AT"], focus:["cultuel","juridique"],
-    atkMsg:"Pharaon endurcit son cœur et refuse de céder !",
-    plaies:["Les eaux changées en sang","Les grenouilles","Les poux","Les bêtes sauvages","La peste du bétail","Les ulcères","La grêle de feu","Les sauterelles","Les ténèbres","La mort des premiers-nés"],
+    atkMsg:["Pharaon endurcit son cœur et refuse de céder !","« Qui est YHWH, pour que j'obéisse à sa voix ? » (Exode 5:2)"],
+    etapes:[
+      {n:"Le Nil changé en sang",           ref:"Exode 7",     d:"Les eaux du fleuve rougissent, les poissons périssent, l'eau devient imbuvable."},
+      {n:"L'invasion des grenouilles",       ref:"Exode 8",     d:"Des myriades de batraciens sortent des eaux et envahissent maisons, lits et fours."},
+      {n:"Les moustiques (sciniphes)",       ref:"Exode 8",     d:"La poussière du sol se change en parasites qui harcèlent hommes et bétail."},
+      {n:"Les mouches venimeuses (taons)",   ref:"Exode 8",     d:"Des nuées d'insectes piqueurs s'abattent sur le pays, épargnant Gochen."},
+      {n:"La peste du bétail",               ref:"Exode 9",     d:"Une maladie foudroyante décime chevaux, ânes, chameaux et bœufs des Égyptiens."},
+      {n:"Les furoncles",                    ref:"Exode 9",     d:"Moïse jette de la cendre vers le ciel : des ulcères douloureux couvrent hommes et bêtes."},
+      {n:"La grêle destructrice",            ref:"Exode 9",     d:"Un orage inédit de grêle et de feu détruit végétation et récoltes."},
+      {n:"Les sauterelles",                  ref:"Exode 10",    d:"Un vent d'est amène un essaim immense qui dévore ce que la grêle avait épargné."},
+      {n:"Les ténèbres",                     ref:"Exode 10",    d:"Une obscurité totale enveloppe l'Égypte trois jours, épargnant les Hébreux."},
+      {n:"La mort des premiers-nés",         ref:"Exode 11-12", d:"La plaie ultime : les fils aînés d'Égypte périssent, y compris celui de Pharaon. Il cède enfin."},
+    ],
     mot:"« Va, sers YHWH comme tu l'as dit ! » Pharaon cède enfin, brisé par la dixième plaie (Exode 12:31) : le peuple sort d'Égypte, la mer s'ouvre devant lui." },
 
   { adv:"Goliath", heros:"David", epoque:"LA VALLÉE D'ÉLA · 1 SAMUEL 17",
-    hp:26, grav:800, atkEvery:24000, atkRows:1, glyph:"goliath",
+    hp:6, grav:800, atkEvery:24000, atkRows:1, glyph:"goliath",
     bg1:"#2b3520", bg2:"#0d1108", accent:"#b9c06a",
     verset:"« Le combat est à YHWH ! » — 1 Samuel 17:47",
     intro:"Un berger face au géant. Non par l'épée ni la lance, mais par la confiance. Empile la justice, et la pierre atteindra son but.",
-    defi:"Objectif : renverser le géant en 26 coups.",
+    defi:"Objectif : franchir les 6 étapes du duel, jusqu'à la pierre fatale.",
     src:["AT"], focus:["juridique","moral"],
-    mot:"Le géant tombe ; Israël respire." },
+    atkMsg:["« Choisis-toi un homme, qu'il descende vers moi ! » (1 S 17:8)","« Suis-je un chien, pour que tu viennes à moi avec des bâtons ? » (1 S 17:43)"],
+    etapes:[
+      {n:"Le défi de quarante jours", ref:"1 S 17:16", d:"Chaque matin et chaque soir, le géant sort et provoque les rangs d'Israël."},
+      {n:"La peur du camp",           ref:"1 S 17:24", d:"En voyant Goliath, tous les hommes d'Israël s'enfuient épouvantés."},
+      {n:"Le refus de Saül",          ref:"1 S 17:33", d:"« Tu ne peux pas », dit Saül à David, « tu n'es qu'un enfant »."},
+      {n:"Les cinq pierres lisses",   ref:"1 S 17:40", d:"David choisit cinq pierres polies dans le torrent, sa fronde à la main."},
+      {n:"« Le combat est à YHWH »",  ref:"1 S 17:47", d:"Ce n'est ni par l'épée ni par la lance que YHWH sauve."},
+      {n:"La pierre en plein front",  ref:"1 S 17:49", d:"La pierre s'enfonce dans le front du géant ; il s'écroule face contre terre."},
+    ],
+    mot:"La pierre a trouvé sa cible. Le géant s'effondre, et l'armée d'Israël se lève : « Le combat est à YHWH » (1 Samuel 17:47)." },
 
   { adv:"Haman", heros:"Esther & Mardochée", epoque:"SUSE LA PERSE · LIVRE D'ESTHER (POURIM)",
-    hp:30, grav:700, atkEvery:20000, atkRows:2, glyph:"haman",
+    hp:6, grav:700, atkEvery:20000, atkRows:2, glyph:"haman",
     bg1:"#3a163a", bg2:"#120612", accent:"#d58bd5",
     verset:"« Efface la mémoire d'Amalek de dessous les cieux. » — Deutéronome 25:19",
     intro:"Haman l'Agaguite, héritier d'Amalek, trame la perte des Juifs. Son décret peut être renversé : bâtis, et le sort se retourne contre lui.",
-    defi:"Attention : le décret d'Haman lâche 2 rangées d'un coup.",
+    defi:"Objectif : déjouer les 6 étapes du complot d'Haman. Attention : son décret lâche 2 rangées d'un coup.",
     src:["AT"], focus:["juridique","social"],
-    mot:"Le décret se retourne ; la joie remplace le deuil." },
+    atkMsg:["« Je ne me tiens pour rien tant que je vois Mardochée assis à la porte. » (Est 5:13)","« Que soit dressée une potence de cinquante coudées ! » (Est 5:14)"],
+    etapes:[
+      {n:"Le refus de se prosterner",         ref:"Esther 3:2",     d:"Mardochée ne fléchit pas le genou devant Haman."},
+      {n:"La colère d'Haman",                 ref:"Esther 3:5-6",   d:"Il vise tout un peuple plutôt que Mardochée seul."},
+      {n:"Le sort jeté (Pourim)",             ref:"Esther 3:7",     d:"On jette le Pourim, le sort, pour fixer le jour du massacre."},
+      {n:"Le décret scellé",                  ref:"Esther 3:12-13", d:"Des lettres partent dans toutes les provinces pour exterminer les Juifs."},
+      {n:"Esther se présente devant le roi",  ref:"Esther 5:1-2",   d:"Au péril de sa vie, la reine s'avance sans y être appelée."},
+      {n:"La potence se retourne",            ref:"Esther 7:9-10",  d:"Haman est pendu au bois qu'il avait dressé pour Mardochée."},
+    ],
+    mot:"Le décret se retourne contre son auteur. Le deuil se change en joie : c'est Pourim, la fête du sort inversé." },
 
   { adv:"Antiochus", heros:"Les Maccabées", epoque:"JÉRUSALEM PROFANÉE · MACCABÉES (HANOUKA)",
-    hp:34, grav:620, atkEvery:16000, atkRows:1, glyph:"antiochus",
+    hp:6, grav:620, atkEvery:16000, atkRows:1, glyph:"antiochus",
     bg1:"#16303a", bg2:"#061114", accent:"#5fc9d5",
     verset:"« Tu n'auras pas d'autres dieux devant ma face. » — Exode 20:3",
     intro:"Antiochus impose ses idoles et souille le Temple. Refuse de plier : chaque ligne purifiée rallume la lumière.",
-    defi:"Antiochus frappe souvent : tiens bon et purifie le sanctuaire.",
+    defi:"Objectif : traverser les 6 étapes de la profanation jusqu'à la purification du Temple.",
     src:["AT"], focus:["cultuel"],
-    mot:"Le Temple est purifié ; la flamme repart." },
+    atkMsg:["« Que tous les peuples de mon royaume n'aient qu'un seul culte ! » (1 M 1:41)","« Quiconque garde l'Alliance mourra. » (1 M 1:57)"],
+    etapes:[
+      {n:"Le Temple profané",        ref:"1 M 1:20-24", d:"Antiochus pille le sanctuaire et emporte les objets sacrés."},
+      {n:"L'idole dans le sanctuaire",ref:"1 M 1:54",    d:"Une abomination de la désolation est dressée sur l'autel."},
+      {n:"L'interdiction de la Torah",ref:"1 M 1:56-57", d:"Les rouleaux de la Loi sont brûlés ; les posséder est puni de mort."},
+      {n:"Le refus de Mattathias",   ref:"1 M 2:23-24", d:"Le vieux prêtre tue l'émissaire du roi plutôt que de sacrifier aux idoles."},
+      {n:"La révolte dans les montagnes",ref:"1 M 2:27-28", d:"Mattathias et ses fils fuient et appellent à la résistance."},
+      {n:"La purification du Temple",ref:"1 M 4:52-59", d:"L'autel est rebâti, la flamme rallumée : c'est Hanouka."},
+    ],
+    mot:"L'autel est purifié, la Ménorah rallumée. Une seule fiole d'huile a suffi bien au-delà de son terme : la lumière tient bon." },
 
   { adv:"Hérode", heros:"Yohanan le Baptiseur", epoque:"LE JOURDAIN · LES ÉVANGILES",
-    hp:38, grav:540, atkEvery:15000, atkRows:1, glyph:"herode",
+    hp:6, grav:540, atkEvery:15000, atkRows:1, glyph:"herode",
     bg1:"#312b22", bg2:"#100d09", accent:"#c9a24b",
     verset:"« Convertissez-vous, car le Royaume des cieux est proche. » — Matthieu 3:2",
     intro:"Yohanan appelle à la justice et reprend le roi en face. Le pouvoir gronde ; la parole droite, elle, ne se tait pas.",
-    defi:"La parole contre le trône : fais tenir la droiture.",
+    defi:"Objectif : tenir bon à travers les 6 étapes du témoignage de Yohanan.",
     src:["AT","NT"], focus:["moral"],
-    mot:"La parole a été dite, sans fléchir." },
+    atkMsg:["« Je crains cet homme, sachant qu'il est juste et saint. » (Marc 6:20)","« Demande-moi ce que tu veux, je te le donnerai ! » (Marc 6:22)"],
+    etapes:[
+      {n:"La voix qui crie au désert", ref:"Mt 3:1-3",  d:"Yohanan appelle à préparer le chemin du Seigneur."},
+      {n:"Le baptême de conversion",   ref:"Mc 1:4-5",  d:"Toute la Judée vient à lui confesser ses péchés."},
+      {n:"La dénonciation d'Hérode",   ref:"Mc 6:18",   d:"« Il ne t'est pas permis d'avoir la femme de ton frère. »"},
+      {n:"L'emprisonnement",           ref:"Mc 6:17",   d:"Hérode fait arrêter Yohanan et l'enferme."},
+      {n:"La danse de Salomé",         ref:"Mc 6:22-23",d:"Le roi promet, sous serment, la moitié de son royaume."},
+      {n:"La parole tient bon",        ref:"Mc 6:27-28",d:"La voix est réduite au silence — mais elle a été dite, sans fléchir."},
+    ],
+    mot:"La parole droite a été prononcée jusqu'au bout, sans détour ni flatterie envers le pouvoir. Elle n'a pas fléchi." },
 
   { adv:"Pilate", heros:"Yeshoua", epoque:"JÉRUSALEM · LA PASSION",
-    hp:44, grav:460, atkEvery:13000, atkRows:1, glyph:"pilate",
+    hp:6, grav:460, atkEvery:13000, atkRows:1, glyph:"pilate",
     bg1:"#1c2140", bg2:"#080a14", accent:"#c9b56a",
     verset:"« Je vous donne un commandement nouveau : aimez-vous les uns les autres. » — Jean 13:34",
     intro:"Face au pouvoir de Rome, Yeshoua ne rend pas coup pour coup : il témoigne de la vérité. Ici on ne renverse pas un homme — on fait triompher le commandement nouveau sur l'endurcissement du monde.",
-    defi:"L'épreuve finale : que l'amour l'emporte sur la dureté.",
+    defi:"Objectif : que l'amour tienne bon à travers les 6 étapes de la Passion.",
     src:["NT"], focus:["moral","cultuel"],
-    mot:"L'amour a témoigné plus fort que la peur." },
+    atkMsg:["« Ne sais-tu pas que j'ai le pouvoir de te relâcher ? » (Jean 19:10)","« Voici l'Homme. » (Jean 19:5)"],
+    etapes:[
+      {n:"L'arrestation au jardin",         ref:"Jean 18:3",     d:"Une troupe armée vient se saisir de lui à Gethsémani."},
+      {n:"Le silence devant l'accusation",  ref:"Marc 14:61",    d:"Il se taisait et ne répondait rien."},
+      {n:"« Qu'est-ce que la vérité ? »",   ref:"Jean 18:37-38", d:"Pilate interroge ; Yeshoua témoigne de la vérité."},
+      {n:"« Je ne trouve en lui aucun crime »",ref:"Jean 18:38", d:"Pilate lui-même reconnaît son innocence."},
+      {n:"La foule préfère Barabbas",       ref:"Marc 15:11",    d:"Les chefs excitent la foule à réclamer un autre."},
+      {n:"Le commandement nouveau l'emporte",ref:"Jean 13:34",   d:"« Aimez-vous les uns les autres » : la dernière parole tient bon."},
+    ],
+    mot:"L'amour a témoigné plus fort que la peur, jusqu'au bout. Ce n'est pas un homme qui est vaincu : c'est l'endurcissement du monde qui recule." },
 ];
 
-/* petits emblèmes SVG (originaux, symboliques) pour chaque adversaire */
 const GLYPHS = {
   pharaon:  '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 L22 21 H2 Z"/><circle cx="12" cy="8" r="2.3" fill="#0c1119"/></svg>',
   goliath:  '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 13a8 8 0 0 1 16 0v3h-3v-3a5 5 0 0 0-10 0v3H4z"/><rect x="11" y="13" width="2" height="8"/></svg>',
@@ -416,7 +507,7 @@ const GLYPHS = {
 };
 
 /* ==========================================================================
-   4) LES PIÈCES (tétrominos) + rotation
+   4) LES PIÈCES (tétrominos)
    ========================================================================== */
 const FORMES = {
   I:[[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
@@ -429,16 +520,18 @@ const FORMES = {
 };
 const CLES_FORMES = Object.keys(FORMES);
 function tournerCW(m){ const n=m.length, r=[]; for(let i=0;i<n;i++){ r.push([]); for(let j=0;j<n;j++) r[i].push(m[n-1-j][i]); } return r; }
+const MIRACLES = ["mer","rocher","manne"];
 
 /* ==========================================================================
    5) ÉTAT
    ========================================================================== */
 const COLS=10, ROWS=20;
 const S = {
-  mode:"menu", chap:0, score:0, muet:false,
+  mode:"menu", chap:0, score:0, muet:false, lang:"fr",
   board:[], piece:null, sac:[], suivante:null,
-  bossHP:0, bossMax:0,
-  gravAcc:0, atkAcc:0, dernier:0, pendingGarbage:0, alerte:false,
+  bossHP:0, bossMax:0, vies:0,
+  duel:false, tour:0, scoreJ:[0,0],
+  gravAcc:0, atkAcc:0, dernier:0, pendingGarbage:0,
   poolChap:[], vus:new Set(), modeAvantCodex:"menu",
 };
 
@@ -447,17 +540,18 @@ const S = {
    ========================================================================== */
 const $=(id)=>document.getElementById(id);
 const board=$("board"), nextGrid=$("next");
-let cellules=[]; // 200 divs
+let cellules=[];
 (function construireGrille(){
   for(let i=0;i<ROWS*COLS;i++){ const d=document.createElement("div"); d.className="c"; board.appendChild(d); cellules.push(d); }
   for(let i=0;i<16;i++){ const d=document.createElement("div"); d.className="c"; nextGrid.appendChild(d); }
 })();
 
 /* ==========================================================================
-   7) SON (bips Web Audio)
+   7) SON — bips + fanfare originale (aucune mélodie existante n'est reprise)
    ========================================================================== */
 let actx=null;
 function bip(f,d,type){ if(S.muet) return; try{ if(!actx) actx=new (window.AudioContext||window.webkitAudioContext)();
+  if(actx.state==="suspended") actx.resume();
   const o=actx.createOscillator(), g=actx.createGain(); o.type=type||"sine"; o.frequency.value=f;
   o.connect(g); g.connect(actx.destination); g.gain.setValueAtTime(.0001,actx.currentTime);
   g.gain.exponentialRampToValueAtTime(.16,actx.currentTime+.01); g.gain.exponentialRampToValueAtTime(.0001,actx.currentTime+d);
@@ -468,9 +562,6 @@ const sTetris=()=>{bip(523,.1);setTimeout(()=>bip(659,.1),90);setTimeout(()=>bip
 const sFrappe=()=>bip(120,.25,"square");
 const sVictoire=()=>{[523,659,784,1046].forEach((f,i)=>setTimeout(()=>bip(f,.16),i*130));};
 
-/* ---- Musique de fond : fanfare orchestrale originale (esprit « space opera »),
-   composée pour ce jeu — aucune mélodie existante n'est reproduite. Simple
-   séquenceur pas-à-pas en Web Audio : cuivres (dent de scie) + basse (triangle). */
 let musicGain=null, musicTimer=null, musicStep=0;
 const MUSIQUE_BPM = 112;
 const MUSIQUE_MELODIE = [392,null,523,null,659,784,659,587, 523,null,440,null,587,523,494,null];
@@ -486,7 +577,10 @@ function jouerNote(freq,dur,type,gain,vol){
   o.start(); o.stop(actx.currentTime+dur+.02);
 }
 function demarrerMusique(){
-  try{ if(!actx) actx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return; }
+  try{
+    if(!actx) actx=new (window.AudioContext||window.webkitAudioContext)();
+    if(actx.state==="suspended") actx.resume();
+  }catch(e){ return; }
   if(!musicGain){ musicGain=actx.createGain(); musicGain.gain.value = S.muet?0:.12; musicGain.connect(actx.destination); }
   if(musicTimer) return;
   const pas = 60000/MUSIQUE_BPM/2;
@@ -510,9 +604,10 @@ function sacMelange(){ const s=CLES_FORMES.slice(); for(let i=s.length-1;i>0;i--
 function tirerForme(){ if(S.sac.length===0) S.sac=sacMelange(); return S.sac.pop(); }
 function cmdAlea(){ const p=S.poolChap.length?S.poolChap:CMDS; return p[(Math.random()*p.length)|0]; }
 function fabriquerPiece(cle){
-  const cat=CATS[(Math.random()*CATS.length)|0];
+  const cmd = cmdAlea();               // la couleur de la pièce suit la vraie catégorie du commandement tiré
   const m=FORMES[cle].map(r=>r.slice());
-  return { m, cat, cmd:cmdAlea(), x:((COLS-m[0].length)/2|0), y:(cle==="I"?-1:0) };
+  const miracle = (Math.random()<0.14) ? MIRACLES[(Math.random()*MIRACLES.length)|0] : null;
+  return { m, cat:cmd.c, cmd, miracle, x:((COLS-m[0].length)/2|0), y:(cle==="I"?-1:0) };
 }
 function collision(m,x,y){
   for(let i=0;i<m.length;i++) for(let j=0;j<m[i].length;j++){
@@ -533,32 +628,30 @@ function poserClasse(el,val,ghost){
 }
 function fantomeY(){ let y=S.piece.y; while(!collision(S.piece.m,S.piece.x,y+1)) y++; return y; }
 function rendre(){
-  // copie du plateau
   const g=S.board.map(r=>r.slice());
   if(S.piece && S.mode==="play"){
     const gy=fantomeY();
-    // fantôme
+    const clef = S.piece.miracle ? "miracle" : S.piece.cat;
     for(let i=0;i<S.piece.m.length;i++) for(let j=0;j<S.piece.m[i].length;j++){
       if(S.piece.m[i][j]){ const R=gy+i,C=S.piece.x+j; if(R>=0&&R<ROWS&&C>=0&&C<COLS&&!g[R][C]) g[R][C]="__ghost__"; }
     }
-    // pièce active
     for(let i=0;i<S.piece.m.length;i++) for(let j=0;j<S.piece.m[i].length;j++){
-      if(S.piece.m[i][j]){ const R=S.piece.y+i,C=S.piece.x+j; if(R>=0&&R<ROWS&&C>=0&&C<COLS) g[R][C]=S.piece.cat; }
+      if(S.piece.m[i][j]){ const R=S.piece.y+i,C=S.piece.x+j; if(R>=0&&R<ROWS&&C>=0&&C<COLS) g[R][C]=clef; }
     }
   }
   for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
     const v=g[r][c], el=cellules[r*COLS+c];
     if(v==="__ghost__") poserClasse(el,null,true); else poserClasse(el,v,false);
   }
-  // lueur = couleur de la catégorie de la pièce (l'environnement réagit)
-  if(S.piece) board.style.setProperty("--lueur","var(--"+S.piece.cat+")");
+  if(S.piece) board.style.setProperty("--lueur", S.piece.miracle ? "var(--miracle)" : "var(--"+S.piece.cat+")");
 }
 function rendreSuivante(){
   const cells=nextGrid.children; for(const c of cells) c.className="c";
-  if(!S.suivante) return;
-  const m=FORMES[S.suivante], cat="cultuel"; // aperçu neutre visuel
+  if(!S.suivante || !S.pieceSuivante) return;
+  const m=FORMES[S.suivante];
+  const cls = S.pieceSuivante.miracle ? "miracle" : S.pieceSuivante.cat;
   for(let i=0;i<m.length;i++) for(let j=0;j<m[i].length;j++){
-    if(m[i][j] && i<4 && j<4){ const el=cells[i*4+j]; el.className="c on "+ S.pieceSuivanteCat; }
+    if(m[i][j] && i<4 && j<4){ const el=cells[i*4+j]; el.className="c on "+cls; }
   }
 }
 
@@ -569,9 +662,17 @@ function nouvellePiece(){
   S.piece = S.pieceSuivante || fabriquerPiece(tirerForme());
   const cleSuiv = tirerForme();
   S.pieceSuivante = fabriquerPiece(cleSuiv);
-  S.suivante = cleSuiv; S.pieceSuivanteCat = S.pieceSuivante.cat;
+  S.suivante = cleSuiv;
   rendreSuivante();
-  if(collision(S.piece.m,S.piece.x,S.piece.y)){ defaite(); return; }
+  if(collision(S.piece.m,S.piece.x,S.piece.y)){
+    if(S.vies>0){
+      // Intervention de secours : une vie est consommée, la pile est dégagée in extremis.
+      S.vies--; majVies();
+      for(let i=0;i<4;i++){ S.board.pop(); S.board.unshift(videRangee()); }
+      toastMiracle(T("secours_t"), T("secours_s"));
+      if(collision(S.piece.m,S.piece.x,S.piece.y)){ defaite(); return; }
+    } else { defaite(); return; }
+  }
   rendre();
 }
 function deplacer(dx){ if(!S.piece||S.mode!=="play") return; if(!collision(S.piece.m,S.piece.x+dx,S.piece.y)){ S.piece.x+=dx; rendre(); } }
@@ -592,12 +693,24 @@ function chute(){
 }
 function poser(){
   sPose();
+  const eraitMiracle = S.piece.miracle;
+  const scoreAvant = S.score;
+  const clef = eraitMiracle ? "miracle" : S.piece.cat;
   for(let i=0;i<S.piece.m.length;i++) for(let j=0;j<S.piece.m[i].length;j++){
-    if(S.piece.m[i][j]){ const R=S.piece.y+i,C=S.piece.x+j; if(R>=0&&R<ROWS) S.board[R][C]=S.piece.cat; }
+    if(S.piece.m[i][j]){ const R=S.piece.y+i,C=S.piece.x+j; if(R>=0) S.board[R][C]=clef; }
   }
   const lignes = nettoyerLignes();
-  if(lignes>0){ recompense(lignes, S.piece.cmd); }
+  if(lignes>0){
+    recompense(lignes, S.piece.cmd);
+    if(eraitMiracle) declencherMiracle(eraitMiracle);
+  }
   if(S.pendingGarbage>0){ ajouterGarbage(S.pendingGarbage); S.pendingGarbage=0; }
+  if(S.duel){
+    const gain = S.score - scoreAvant;
+    S.scoreJ[S.tour] += gain;
+    S.tour = 1 - S.tour;
+    majTour();
+  }
   majScore();
   if(S.mode==="play") nouvellePiece();
 }
@@ -613,8 +726,7 @@ function recompense(lignes, cmd){
   const ch = CHAPS[S.chap];
   const ptsLigne=[0,100,300,500,800][lignes]||800;
   S.score += ptsLigne;
-  // Chapitre de Pharaon : une plaie nommée tombe par ligne complétée (pas de barème générique).
-  const degatsDemandes = ch.plaies ? lignes : ([0,1,3,6,10][lignes]||10);
+  const degatsDemandes = ch.etapes ? lignes : ([0,1,3,6,10][lignes]||10);
   const hpAvant = S.bossHP;
   S.bossHP = Math.max(0, S.bossHP - degatsDemandes);
   const degatsReels = hpAvant - S.bossHP;
@@ -622,23 +734,47 @@ function recompense(lignes, cmd){
   if(lignes>=4) sTetris(); else sLigne();
   montrerCodex(cmd);
   let delaiVictoire = 0;
-  if(ch.plaies && degatsReels>0){
-    const dejaFait = ch.hp - hpAvant;           // plaies déjà tombées avant ce coup
+  if(ch.etapes && degatsReels>0){
+    const dejaFait = ch.hp - hpAvant;
     for(let k=0;k<degatsReels;k++){
       const idx = dejaFait + k;
-      setTimeout(()=>toastPlaie(idx+1, ch.plaies.length, ch.plaies[idx]), 300 + k*650);
+      setTimeout(()=>toastEtape(idx+1, ch.etapes.length, ch.etapes[idx]), 300 + k*900);
     }
-    delaiVictoire = 300 + (degatsReels-1)*650 + 1000; // on laisse lire la dernière plaie
+    delaiVictoire = 300 + (degatsReels-1)*900 + 1700;
   }
   if(S.bossHP<=0){ setTimeout(victoireChapitre, delaiVictoire); }
 }
-/* toast dédié à l'annonce d'une plaie d'Égypte (chapitre 1) */
-function toastPlaie(n, total, nom){
+/* étape narrative nommée (les 6 chapitres) */
+function toastEtape(n, total, etape){
   const box=$("codex"); const t=document.createElement("div"); t.className="toast";
   t.style.setProperty("--tcol","#c94b3a");
-  t.innerHTML='<div class="r"><span>PLAIE '+n+' / '+total+'</span><span>Pharaon résiste encore…</span></div><div class="t">'+nom+'</div>';
+  t.innerHTML='<div class="r"><span>'+n+' / '+total+' · '+etape.ref+'</span><span>'+CHAPS[S.chap].adv+' résiste encore…</span></div>'
+            + '<div class="t" style="font-weight:600">'+etape.n+'</div>'
+            + '<div class="t" style="font-size:.76rem;font-style:italic;opacity:.85;margin-top:2px">'+etape.d+'</div>';
   box.innerHTML=""; box.appendChild(t);
-  setTimeout(()=>{ if(t.parentNode) t.remove(); },1900);
+  setTimeout(()=>{ if(t.parentNode) t.remove(); },2200);
+}
+/* interventions divines : bonus déclenchés par une pièce dorée */
+function declencherMiracle(type){
+  if(type==="mer"){
+    for(let r=0;r<ROWS;r++){ if(S.board[r].every(v=>v==="x")){ S.board.splice(r,1); S.board.unshift(videRangee()); } }
+    S.bossHP = Math.max(0, S.bossHP-2); majBoss();
+    toastMiracle(T("miracle_mer_t"), "Les rangées adverses sont englouties.");
+  } else if(type==="rocher"){
+    S.vies = Math.min(3, S.vies+1); majVies();
+    toastMiracle(T("miracle_rocher_t"), "+1 vie de secours (bouclier).");
+  } else if(type==="manne"){
+    const bonus = 200 + S.chap*40; S.score += bonus;
+    toastMiracle(T("miracle_manne_t"), "+"+bonus+" points du ciel.");
+  }
+  rendre();
+}
+function toastMiracle(titre, sous){
+  const box=$("codex"); const t=document.createElement("div"); t.className="toast";
+  t.style.setProperty("--tcol","#e6c15a");
+  t.innerHTML='<div class="t" style="font-weight:700">✦ '+titre+'</div><div class="t" style="font-size:.78rem;font-style:italic;opacity:.85">'+sous+'</div>';
+  box.innerHTML=""; box.appendChild(t);
+  setTimeout(()=>{ if(t.parentNode) t.remove(); },2400);
 }
 function ajouterGarbage(nb){
   for(let k=0;k<nb;k++){
@@ -646,7 +782,6 @@ function ajouterGarbage(nb){
     const rang=videRangee(); for(let c=0;c<COLS;c++) if(c!==trou) rang[c]="x";
     S.board.shift(); S.board.push(rang);
   }
-  // si la pièce active se retrouve coincée, on la remonte
   if(S.piece){ while(collision(S.piece.m,S.piece.x,S.piece.y) && S.piece.y> -2) S.piece.y--; }
   rendre();
 }
@@ -655,11 +790,10 @@ function attaqueBoss(){
   S.pendingGarbage += ch.atkRows;
   sFrappe();
   $("boss").classList.remove("frappe"); void $("boss").offsetWidth; $("boss").classList.add("frappe");
-  const msg = ch.atkMsg ? ch.atkMsg : (ch.adv + " frappe ! " + ch.atkRows + " rangée" + (ch.atkRows>1?"s":""));
+  const msgs = ch.atkMsg;
+  const msg = Array.isArray(msgs) ? msgs[(Math.random()*msgs.length)|0] : (msgs || (ch.adv+" frappe !"));
   toastAlerte(msg);
 }
-
-/* boucle temps réel */
 function boucle(t){
   requestAnimationFrame(boucle);
   if(S.mode!=="play"){ S.dernier=t; return; }
@@ -671,9 +805,46 @@ function boucle(t){
 }
 
 /* ==========================================================================
-   10bis) NOM DIVIN — YHWH ⇄ « L'Éternel », au choix du joueur
-   Tous les textes du corpus utilisent le jeton "YHWH" ; d(txt) le retranscrit
-   à l'affichage selon la préférence choisie. Rien n'est modifié en mémoire.
+   11) I18N — 14 langues. Seule l'interface (menus, boutons, libellés) est
+   traduite ; les textes bibliques (récits, versets, corpus) restent en
+   français, par souci d'exactitude — voir la note du concepteur.
+   ========================================================================== */
+const I18N_KEYS = ["app_title","menu_kicker","menu_h1","menu_p","menu_rules","mode_solo","mode_duel","btn_start","nom_divin_lbl","nom_changer","btn_codex","lbl_score","lbl_chap","lbl_vies","lbl_tour","j1","j2","cat_cultuel","cat_juridique","cat_moral","cat_social","nat_pos","nat_neg","src_at","src_nt","btn_combat","btn_suite","btn_fin","btn_reprendre","btn_menu","btn_rejouer","defeat_over","defeat_h","win_over","win_h","pause_msg","codex_title","codex_rencontres","codex_retour","miracle_mer_t","miracle_rocher_t","miracle_manne_t","lang_lbl","scope_note"];
+const I18N_INDEX = {}; I18N_KEYS.forEach((k,i)=>I18N_INDEX[k]=i);
+const I18N = {
+fr:["L'ALLIANCE","TETRIS DES JUSTES · DE L'EXODE AUX ÉVANGILES","L'Alliance","Des pièces tombent, tu bâtis des rangées. Chaque rangée accomplie fait reculer l'adversaire de l'histoire.","Téléphone : 5 touches en bas · Ordinateur : flèches + espace.","Solo","Duel local (2 joueurs)","Commencer l'Exode","Nom divin","changer","Codex des commandements","Score","Chap.","Vies","Au tour de","Joueur 1","Joueur 2","Cultuel","Juridique / Civil","Moral","Social","à faire","à éviter","Torah","Évangile","Au combat","Chapitre suivant","Voir la fin","Reprendre le chapitre","Retour au menu","Tout recommencer","LA PILE A DÉBORDÉ","Reprends courage","L'ALLIANCE ACCOMPLIE","Bravo !","Pause — touche P ou ⏸ pour reprendre","Les commandements de l'Alliance","Rencontrés","Retour","La Mer s'ouvre !","Le Rocher jaillit !","La Manne descend !","Langue","L'interface change de langue ; les textes bibliques restent en français pour l'instant."],
+en:["THE COVENANT","TETRIS OF THE RIGHTEOUS · FROM EXODUS TO THE GOSPELS","The Covenant","Pieces fall, you build rows. Each completed row makes the enemy of the story retreat.","Phone: 5 buttons below · Computer: arrow keys + space.","Solo","Local duel (2 players)","Begin the Exodus","Divine Name","change","Codex of Commandments","Score","Ch.","Lives","Turn of","Player 1","Player 2","Cultic","Legal / Civil","Moral","Social","to do","to avoid","Torah","Gospel","Into battle","Next chapter","See the ending","Retry the chapter","Back to menu","Restart everything","THE STACK OVERFLOWED","Take heart","THE COVENANT FULFILLED","Well done!","Paused — press P or ⏸ to resume","Commandments of the Covenant","Encountered","Back","The Sea opens!","The Rock gushes!","The Manna falls!","Language","The interface changes language; scripture texts remain in French for now."],
+es:["LA ALIANZA","TETRIS DE LOS JUSTOS · DEL ÉXODO A LOS EVANGELIOS","La Alianza","Las piezas caen, construyes filas. Cada fila completada hace retroceder al enemigo de la historia.","Móvil: 5 botones abajo · PC: flechas + espacio.","Solo","Duelo local (2 jugadores)","Comenzar el Éxodo","Nombre divino","cambiar","Códice de mandamientos","Puntos","Cap.","Vidas","Turno de","Jugador 1","Jugador 2","Cultual","Jurídico / Civil","Moral","Social","a cumplir","a evitar","Torá","Evangelio","Al combate","Capítulo siguiente","Ver el final","Reintentar capítulo","Volver al menú","Reiniciar todo","LA PILA SE DESBORDÓ","Ten valor","LA ALIANZA CUMPLIDA","¡Bien hecho!","Pausa — pulsa P o ⏸ para continuar","Mandamientos de la Alianza","Encontrados","Volver","¡El Mar se abre!","¡La Roca brota!","¡Cae el Maná!","Idioma","La interfaz cambia de idioma; los textos bíblicos siguen en francés por ahora."],
+de:["DER BUND","TETRIS DER GERECHTEN · VOM EXODUS ZU DEN EVANGELIEN","Der Bund","Steine fallen, du baust Reihen. Jede vollendete Reihe drängt den Widersacher der Geschichte zurück.","Handy: 5 Tasten unten · PC: Pfeiltasten + Leertaste.","Solo","Lokales Duell (2 Spieler)","Den Exodus beginnen","Gottesname","ändern","Kodex der Gebote","Punkte","Kap.","Leben","Am Zug","Spieler 1","Spieler 2","Kultisch","Rechtlich / Zivil","Moralisch","Sozial","zu tun","zu meiden","Tora","Evangelium","In den Kampf","Nächstes Kapitel","Das Ende sehen","Kapitel wiederholen","Zurück zum Menü","Alles neu starten","DER STAPEL LIEF ÜBER","Fass Mut","DER BUND ERFÜLLT","Gut gemacht!","Pause — P oder ⏸ zum Fortsetzen","Gebote des Bundes","Begegnet","Zurück","Das Meer öffnet sich!","Der Fels sprudelt!","Das Manna fällt!","Sprache","Die Oberfläche wechselt die Sprache; die Bibeltexte bleiben vorerst auf Französisch."],
+nl:["HET VERBOND","TETRIS DER RECHTVAARDIGEN · VAN EXODUS TOT DE EVANGELIËN","Het Verbond","Stukken vallen, jij bouwt rijen. Elke voltooide rij drijft de tegenstander van het verhaal terug.","Telefoon: 5 knoppen onderaan · PC: pijltjestoetsen + spatie.","Solo","Lokaal duel (2 spelers)","Begin de Exodus","Goddelijke Naam","wijzigen","Codex der geboden","Score","Hst.","Levens","Aan de beurt","Speler 1","Speler 2","Cultisch","Juridisch / Burgerlijk","Moreel","Sociaal","te doen","te vermijden","Thora","Evangelie","Ten strijde","Volgend hoofdstuk","Bekijk het einde","Hoofdstuk overdoen","Terug naar menu","Alles opnieuw","DE STAPEL LIEP OVER","Houd moed","HET VERBOND VOLBRACHT","Goed gedaan!","Pauze — druk op P of ⏸ om verder te gaan","Geboden van het Verbond","Ontmoet","Terug","De Zee opent zich!","De Rots welt op!","Het Manna daalt neer!","Taal","De interface wisselt van taal; de bijbelteksten blijven voorlopig in het Frans."],
+pt:["A ALIANÇA","TETRIS DOS JUSTOS · DO ÊXODO AOS EVANGELHOS","A Aliança","As peças caem, tu constróis fileiras. Cada fileira completa faz recuar o inimigo da história.","Telemóvel: 5 botões em baixo · PC: setas + espaço.","Solo","Duelo local (2 jogadores)","Começar o Êxodo","Nome divino","mudar","Códice dos mandamentos","Pontos","Cap.","Vidas","Vez de","Jogador 1","Jogador 2","Cultual","Jurídico / Civil","Moral","Social","a fazer","a evitar","Torá","Evangelho","Ao combate","Próximo capítulo","Ver o final","Repetir capítulo","Voltar ao menu","Recomeçar tudo","A PILHA TRANSBORDOU","Coragem","A ALIANÇA CUMPRIDA","Muito bem!","Pausa — prime P ou ⏸ para continuar","Mandamentos da Aliança","Encontrados","Voltar","O Mar abre-se!","A Rocha jorra!","O Maná desce!","Idioma","A interface muda de idioma; os textos bíblicos permanecem em francês por enquanto."],
+it:["L'ALLEANZA","TETRIS DEI GIUSTI · DALL'ESODO AI VANGELI","L'Alleanza","I pezzi cadono, tu costruisci righe. Ogni riga completata fa arretrare il nemico della storia.","Telefono: 5 tasti in basso · PC: frecce + spazio.","Solo","Duello locale (2 giocatori)","Inizia l'Esodo","Nome divino","cambia","Codice dei comandamenti","Punteggio","Cap.","Vite","Tocca a","Giocatore 1","Giocatore 2","Cultuale","Giuridico / Civile","Morale","Sociale","da fare","da evitare","Torà","Vangelo","Al combattimento","Capitolo successivo","Vedi il finale","Ripeti il capitolo","Torna al menu","Ricomincia tutto","LA PILA È TRABOCCATA","Fatti coraggio","L'ALLEANZA COMPIUTA","Ben fatto!","Pausa — premi P o ⏸ per continuare","Comandamenti dell'Alleanza","Incontrati","Indietro","Il Mare si apre!","La Roccia sgorga!","La Manna scende!","Lingua","L'interfaccia cambia lingua; i testi biblici restano in francese per ora."],
+zh:["盟约","义人的俄罗斯方块 · 从出埃及记到福音书","盟约","方块落下,你来叠行。每消除一行,故事中的敌人就后退一步。","手机:下方五个按钮 · 电脑:方向键+空格。","单人","本地对战(2人)","开始出埃及","圣名","更改","诫命法典","分数","章","生命","轮到","玩家1","玩家2","礼仪类","律法/民事类","道德类","社会类","当行","当戒","妥拉","福音","开战","下一章","查看结局","重来本章","返回主菜单","全部重来","方块堆满了","振作起来","盟约已成","太棒了!","暂停 — 按 P 或 ⏸ 继续","盟约的诫命","已遇到","返回","海开了!","磐石涌出水来!","吗哪降下!","语言","界面会切换语言;经文文本目前仍为法语。"],
+ru:["ЗАВЕТ","ТЕТРИС ПРАВЕДНЫХ · ОТ ИСХОДА ДО ЕВАНГЕЛИЙ","Завет","Фигуры падают, ты строишь ряды. Каждый собранный ряд отбрасывает врага истории назад.","Телефон: 5 кнопок внизу · Компьютер: стрелки + пробел.","Соло","Локальная дуэль (2 игрока)","Начать Исход","Божественное Имя","сменить","Кодекс заповедей","Очки","Гл.","Жизни","Ход","Игрок 1","Игрок 2","Культовая","Юридическая / гражданская","Нравственная","Социальная","исполнить","избегать","Тора","Евангелие","В бой","Следующая глава","Увидеть финал","Повторить главу","В меню","Начать заново","СТОПКА ПЕРЕПОЛНИЛАСЬ","Не падай духом","ЗАВЕТ ИСПОЛНЕН","Отлично!","Пауза — нажми P или ⏸, чтобы продолжить","Заповеди Завета","Встречено","Назад","Море расступается!","Скала источает воду!","Манна нисходит!","Язык","Интерфейс меняет язык; библейские тексты пока остаются на французском."],
+ar:["العهد","تتريس الأبرار · من الخروج إلى الأناجيل","العهد","القطع تتساقط، وأنت تبني صفوفًا. كل صف مكتمل يدفع خصم القصة إلى الوراء.","الهاتف: 5 أزرار أسفل الشاشة · الحاسوب: الأسهم + المسافة.","فردي","مبارزة محلية (لاعبان)","ابدأ الخروج","الاسم الإلهي","تغيير","سجلّ الوصايا","النقاط","ف.","الأرواح","دور","اللاعب 1","اللاعب 2","طقسية","قانونية / مدنية","أخلاقية","اجتماعية","افعل","تجنّب","التوراة","الإنجيل","إلى المعركة","الفصل التالي","مشاهدة النهاية","إعادة الفصل","العودة للقائمة","إعادة البدء","امتلأ العمود","تشجّع","تم العهد","أحسنت!","إيقاف مؤقت — اضغط P أو ⏸ للمتابعة","وصايا العهد","تمت مصادفتها","رجوع","ينفلق البحر!","تتفجر الصخرة!","ينزل المنّ!","اللغة","تتغيّر لغة الواجهة؛ تبقى النصوص الكتابية بالفرنسية حاليًا."],
+he:["הברית","טטריס הצדיקים · מן היציאה ועד הבשורות","הברית","חלקים נופלים, אתה בונה שורות. כל שורה שהושלמה דוחקת את אויב הסיפור לאחור.","טלפון: 5 כפתורים למטה · מחשב: חצים + רווח.","יחיד","דו-קרב מקומי (2 שחקנים)","התחל את היציאה","שם ה'","שנה","קודקס המצוות","ניקוד","פרק","חיים","תור","שחקן 1","שחקן 2","פולחנית","משפטית / אזרחית","מוסרית","חברתית","לעשות","להימנע","תורה","הבשורה","לקרב","פרק הבא","צפה בסיום","נסה שוב את הפרק","חזרה לתפריט","התחל הכול מחדש","הערימה גלשה","התעודד","הברית הושלמה","כל הכבוד!","הפסקה — לחץ P או ⏸ להמשך","מצוות הברית","נפגשו","חזרה","הים נבקע!","הסלע נובע!","המן יורד!","שפה","הממשק משנה שפה; טקסטי המקרא נשארים בצרפתית לעת עתה."],
+ht:["ALYANS LA","TETRIS JIS YO · SÒTI EGZÒD RIVE NAN LEVANJIL","Alyans lan","Moso yo ap tonbe, w ap bati liy. Chak liy fini fè advèsè istwa a rekile.","Telefòn: 5 bouton anba · Òdinatè: flèch + espas.","Sèl","Duel lokal (2 jwè)","Kòmanse Egzòd la","Non Bondye a","chanje","Kodèks kòmandman yo","Pwen","Chap.","Lavi","Vire pou","Jwè 1","Jwè 2","Kiltyèl","Jiridik / Sivil","Moral","Sosyal","pou fè","pou evite","Toraw","Levanjil","Nan konba","Chapit apre","Gade fen an","Rekòmanse chapit la","Retounen nan meni","Rekòmanse tout bagay","PIL LA DEBÒDE","Pran kouraj","ALYANS LA AKONPLI","Bravo!","Poz — peze P oswa ⏸ pou kontinye","Kòmandman Alyans lan","Rankontre","Retounen","Lanmè a louvri!","Wòch la jayi dlo!","Manna a desann!","Lang","Entèfas la chanje lang; tèks biblik yo rete an franse pou kounye a."],
+mfe:["LALIANS","TETRIS DE ZIS · DEPI LEGZOD ZISK LEVANZIL","Lalians","Bout pe tonbe, to pe bati ranze. Sak ranze fini fer lennmi zistwar la rekile.","Telefonn: 5 bouton anba · Lordinater: flèsh + espas.","Sel","Diel lokal (2 zwer)","Koumans Legzod","Nom diven","sanze","Kodeks komannman","Pwin","Sap.","Lavi","Latour","Zwer 1","Zwer 2","Kiltyel","Ziridik / Sivil","Moral","Sosial","pou fer","pou evite","Torah","Levanzil","Al lager","Sapit swivan","Get lafin","Rekoumans sapit la","Retourn dan meni","Rekoumans tou","PIL LA DEBORDE","Pran kouraz","LALIANS AKONPLI","Bien fer!","Poz — pez P ou ⏸ pou kontinie","Komannman Lalians","Rankontre","Retour","Lamer uver!","Ros la zayi!","Manna pe desann!","Langaz","Lenterfas sanz lang; bann text biblik reste an franse pou lemoman."],
+crs:["LALIANS","TETRIS BANN ZIS · DEPWI LEGZOD ZISKA LEVANZIL","Lalians","Bann pyes i tonbe, ou pe konstri bann liny. Sak liny fini fer lennmi zistwar la rekile.","Telefonn: 5 bouton anba · Ordinater: fles + espas.","Sel","Diel lokal (2 zoer)","Konmans Legzod","Non Bondye","sanze","Kodeks bann komannman","Pwen","Sap.","Lavi","Latour","Zoer 1","Zoer 2","Kiltyel","Zoridik / Sivil","Moral","Sosyal","pou fer","pou evite","Tora","Levanzil","Anmenn lager","Sapit swivan","Get lafen","Rekonmans sapit la","Retourn dan meni","Rekonmans tou","PIL LA I DEBORDE","Pran kouraz","LALIANS I AKONPLI","Byen fer!","Poz — pres P oubyen ⏸ pou kontinyen","Bann komannman Lalians","Rankontre","Retourn","Lamer i ouver!","Ros i zayir!","Lamann i desann!","Langaz","Lenterfas i sanz langaz; bann tekst labib i reste an franse pour lemoman."],
+};
+function T(key){
+  const idx = I18N_INDEX[key];
+  if(idx===undefined) return key;
+  const arr = I18N[S.lang] || I18N.fr;
+  return (arr[idx]!==undefined) ? arr[idx] : I18N.fr[idx];
+}
+function appliquerLangue(){
+  document.documentElement.setAttribute("lang", S.lang);
+  document.documentElement.dir = (S.lang==="ar"||S.lang==="he") ? "rtl" : "ltr";
+  document.querySelectorAll("[data-i18n]").forEach(el=>{ el.textContent = T(el.dataset.i18n); });
+  $("btn-nom-menu").textContent = texteBoutonNom();
+  majVies(); majTour();
+  if(!$("e-codex").classList.contains("cache")) construireCodex();
+  if(S.mode==="chapwin"){ $("btn-suite").textContent = (S.chap>=CHAPS.length-1) ? T("btn_fin") : T("btn_suite"); }
+}
+
+/* ==========================================================================
+   12) NOM DIVIN — YHWH ⇄ « L'Éternel »
    ========================================================================== */
 const PREF = { nom:"YHWH" };
 function d(txt){
@@ -688,7 +859,7 @@ function majSigil(){
   const el = $("sigil");
   el.innerHTML = (PREF.nom==="YHWH") ? 'יהוה<small>YHWH</small>' : '✦<small>L\'ÉTERNEL</small>';
 }
-function texteBoutonNom(){ return "Nom divin : " + (PREF.nom==="YHWH" ? "YHWH" : "L'Éternel") + " — changer"; }
+function texteBoutonNom(){ return T("nom_divin_lbl") + " : " + (PREF.nom==="YHWH" ? "YHWH" : "L'Éternel") + " — " + T("nom_changer"); }
 function basculerNom(){
   PREF.nom = (PREF.nom==="YHWH") ? "ETERNEL" : "YHWH";
   majSigil();
@@ -697,16 +868,27 @@ function basculerNom(){
 }
 
 /* ==========================================================================
-   11) INTERFACE / CODEX / SCORE
+   13) INTERFACE / CODEX / SCORE / VIES / TOUR
    ========================================================================== */
 function majScore(){ $("score").textContent=S.score; }
 function majBoss(){ $("pv").style.width=(100*S.bossHP/S.bossMax)+"%"; }
+function majVies(){
+  const el=$("vies-ligne"); if(!el) return;
+  el.textContent = T("lbl_vies")+" : "+(S.vies>0 ? "❤️".repeat(S.vies) : "—");
+}
+function majTour(){
+  const el=$("tour-ligne"); if(!el) return;
+  if(!S.duel){ el.style.display="none"; return; }
+  el.style.display="block";
+  const nomJ = S.tour===0 ? T("j1") : T("j2");
+  el.textContent = T("lbl_tour")+" : "+nomJ+"  ·  "+T("j1")+" "+S.scoreJ[0]+"  ·  "+T("j2")+" "+S.scoreJ[1];
+}
 function montrerCodex(cmd){
   S.vus.add(cmd.r);
   const box=$("codex"); const t=document.createElement("div"); t.className="toast";
   t.style.setProperty("--tcol","var(--"+cmd.c+")");
-  const badge = cmd.s==="NT" ? "✝ Évangile" : "✡ Torah";
-  const nat = cmd.n==="pos" ? "à faire" : "à éviter";
+  const badge = cmd.s==="NT" ? "✝ "+T("src_nt") : "✡ "+T("src_at");
+  const nat = cmd.n==="pos" ? T("nat_pos") : T("nat_neg");
   t.innerHTML='<div class="r"><span>'+cmd.r+'</span><span>'+badge+' · '+nat+'</span></div><div class="t">'+d(cmd.t)+'</div>';
   box.innerHTML=""; box.appendChild(t);
   setTimeout(()=>{ if(t.parentNode) t.remove(); },3100);
@@ -720,13 +902,13 @@ function toastAlerte(txt){
 }
 
 /* ==========================================================================
-   12) FLUX DES CHAPITRES / ÉCRANS
+   14) FLUX DES CHAPITRES / ÉCRANS
    ========================================================================== */
 function ecran(id){ ["e-menu","e-intro","e-victoire","e-defaite","e-fin","e-codex"].forEach(e=>$(e).classList.add("cache")); if(id)$(id).classList.remove("cache"); }
-function libelleCat(c){ return {cultuel:"Cultuel",juridique:"Juridique / Civil",moral:"Moral",social:"Social"}[c]; }
+function libelleCat(c){ return T("cat_"+c); }
 function construireCodex(){
-  let html = '<div id="codex-entete"><div class="over">CODEX</div><h2 style="margin:.15rem 0">Les commandements de l\'Alliance</h2>'
-    + '<div class="pastille" style="text-align:center;display:block;margin-bottom:.3rem">Rencontrés<b>'+S.vus.size+' / '+CMDS.length+'</b></div></div>'
+  let html = '<div id="codex-entete"><div class="over">CODEX</div><h2 style="margin:.15rem 0">'+T("codex_title")+'</h2>'
+    + '<div class="pastille" style="text-align:center;display:block;margin-bottom:.3rem">'+T("codex_rencontres")+'<b>'+S.vus.size+' / '+CMDS.length+'</b></div></div>'
     + '<div class="codex-liste">';
   CATS.forEach(cat=>{
     html += '<div class="codex-cat">'+libelleCat(cat)+'</div>';
@@ -734,11 +916,11 @@ function construireCodex(){
       const vu = S.vus.has(k.r);
       const badge = k.s==="NT" ? "✝" : "✡";
       html += '<div class="codex-item'+(vu?' vu':'')+'"><span class="pip" style="background:var(--'+k.c+')"></span>'
-            + '<div class="corps"><div class="ref"><span>'+k.r+' · '+badge+' · '+(k.n==="pos"?"à faire":"à éviter")+'</span></div>'
+            + '<div class="corps"><div class="ref"><span>'+k.r+' · '+badge+' · '+(k.n==="pos"?T("nat_pos"):T("nat_neg"))+'</span></div>'
             + d(k.t) + '</div><span class="check">'+(vu?'✓':'')+'</span></div>';
     });
   });
-  html += '</div><button class="bouton" id="btn-codex-fermer" style="margin-top:1rem">Retour</button>';
+  html += '</div><button class="bouton" id="btn-codex-fermer" style="margin-top:1rem">'+T("codex_retour")+'</button>';
   $("e-codex").innerHTML = html;
   $("btn-codex-fermer").addEventListener("click", fermerCodex);
 }
@@ -760,7 +942,6 @@ function appliquerAmbiance(ch){
   document.body.style.setProperty("--accent",ch.accent);
 }
 function poolPourChapitre(ch){
-  // priorité aux sources + catégories du chapitre, avec repli sur tout le corpus
   let p=CMDS.filter(k=> ch.src.includes(k.s));
   const prio=p.filter(k=> ch.focus.includes(k.c));
   S.poolChap = prio.length>=6 ? prio.concat(p) : (p.length?p:CMDS);
@@ -788,7 +969,7 @@ function demarrerChapitre(i){
   $("boss-contre").textContent="↔ "+ch.heros;
   $("boss-defi").textContent=ch.defi;
   $("boss-av").innerHTML=GLYPHS[ch.glyph];
-  majBoss(); majScore();
+  majBoss(); majScore(); majVies(); majTour();
   nouvellePiece();
   S.mode="play"; ecran(null); $("codex").innerHTML="";
 }
@@ -799,7 +980,7 @@ function victoireChapitre(){
   $("v-titre").textContent=ch.adv+" est vaincu";
   $("v-mot").textContent=d(ch.mot);
   $("v-verset").textContent=d(ch.verset);
-  $("btn-suite").textContent = (S.chap>=CHAPS.length-1) ? "Voir la fin" : "Chapitre suivant";
+  $("btn-suite").textContent = (S.chap>=CHAPS.length-1) ? T("btn_fin") : T("btn_suite");
   ecran("e-victoire");
 }
 function chapitreSuivant(){
@@ -813,10 +994,14 @@ function defaite(){
   $("d-mot").textContent="« "+ch.adv+" » tient encore. Reprends le chapitre — la pile repart de zéro, ton score est conservé.";
   ecran("e-defaite");
 }
-function nouvellePartie(){ S.score=0; majScore(); montrerIntro(0); }
+function nouvellePartie(){
+  S.score=0; S.vies=0; S.tour=0; S.scoreJ=[0,0];
+  majScore(); majVies(); majTour();
+  montrerIntro(0);
+}
 
 /* ==========================================================================
-   13) ENTRÉES
+   15) ENTRÉES
    ========================================================================== */
 function lier(id,fn){ const el=$(id); el.addEventListener("click",(e)=>{e.preventDefault();fn();}); }
 lier("t-gauche",()=>deplacer(-1));
@@ -836,7 +1021,6 @@ document.addEventListener("keydown",(e)=>{
   else if(k==="p"||k==="P"){basculePause();}
 });
 
-// glisser sur le plateau
 let tx=null,ty=null;
 board.addEventListener("touchstart",(e)=>{tx=e.changedTouches[0].clientX;ty=e.changedTouches[0].clientY;},{passive:true});
 board.addEventListener("touchend",(e)=>{
@@ -848,7 +1032,7 @@ board.addEventListener("touchend",(e)=>{
 },{passive:true});
 
 function basculePause(){
-  if(S.mode==="play"){ S.mode="paused"; toastAlerte("Pause — touche P ou ⏸ pour reprendre"); }
+  if(S.mode==="play"){ S.mode="paused"; toastAlerte(T("pause_msg")); }
   else if(S.mode==="paused"){ S.mode="play"; $("codex").innerHTML=""; }
 }
 $("btn-pause").addEventListener("click",basculePause);
@@ -860,9 +1044,11 @@ $("btn-nom").addEventListener("click", basculerNom);
 $("btn-nom-menu").addEventListener("click", basculerNom);
 $("btn-codex").addEventListener("click", ouvrirCodex);
 $("btn-codex-menu").addEventListener("click", ouvrirCodex);
+$("btn-mode-solo").addEventListener("click",()=>{ S.duel=false; $("btn-mode-solo").classList.add("actif"); $("btn-mode-duel").classList.remove("actif"); });
+$("btn-mode-duel").addEventListener("click",()=>{ S.duel=true; $("btn-mode-duel").classList.add("actif"); $("btn-mode-solo").classList.remove("actif"); });
+$("sel-langue").addEventListener("change",(e)=>{ S.lang=e.target.value; appliquerLangue(); });
 
-// boutons d'écran
-$("btn-jouer").addEventListener("click",()=>{ try{actx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){} demarrerMusique(); nouvellePartie(); });
+$("btn-jouer").addEventListener("click",()=>{ demarrerMusique(); nouvellePartie(); });
 $("btn-combat").addEventListener("click",()=>demarrerChapitre(S.chap));
 $("btn-suite").addEventListener("click",chapitreSuivant);
 $("btn-reprendre").addEventListener("click",()=>demarrerChapitre(S.chap));
@@ -870,12 +1056,12 @@ $("btn-menu-d").addEventListener("click",()=>{ arreterMusique(); S.mode="menu"; 
 $("btn-rejouer").addEventListener("click",()=>{ arreterMusique(); S.mode="menu"; ecran("e-menu"); });
 
 /* ==========================================================================
-   14) TAILLE ADAPTATIVE DES CELLULES
+   16) TAILLE ADAPTATIVE
    ========================================================================== */
 function ajusterCellule(){
   const arene=$("arene");
   const dispoH=arene.clientHeight-10;
-  const dispoW=arene.clientWidth-74-16-12; // moins le panneau latéral
+  const dispoW=arene.clientWidth-74-16-12;
   const cell=Math.max(13, Math.min(26, Math.floor(Math.min(dispoH/ROWS, dispoW/COLS))));
   document.documentElement.style.setProperty("--cell",cell+"px");
 }
@@ -884,7 +1070,7 @@ setTimeout(ajusterCellule,60);
 
 /* démarrage */
 majSigil();
-$("btn-nom-menu").textContent = texteBoutonNom();
+appliquerLangue();
 ecran("e-menu");
 requestAnimationFrame((t)=>{ S.dernier=t; requestAnimationFrame(boucle); });
 </script>
